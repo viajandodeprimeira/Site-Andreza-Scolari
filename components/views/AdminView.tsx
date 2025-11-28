@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles } from '../ui/Icons';
+import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2 } from '../ui/Icons';
 import { useProperties } from '../../contexts/PropertyContext';
 import { AppMode } from '../../types';
 
@@ -14,28 +14,62 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     properties, addProperty, removeProperty, importMockProperties,
     brokerProfile, updateBrokerProfile,
     socialLinks, updateSocialLinks,
-    faqs, addFaq, removeFaq, resetAllData, usingFirebase
+    faqs, addFaq, removeFaq,
+    features, addFeature, removeFeature,
+    resetAllData, usingFirebase
   } = useProperties();
 
   const [activeTab, setActiveTab] = useState<'properties' | 'content'>('properties');
   const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const featureInputRef = useRef<HTMLInputElement>(null);
 
-  // Property Form State
+  // Property Form
   const [propForm, setPropForm] = useState({
-    title: '', location: '', price: '', type: '', specs: '', tag: '', image: ''
+    title: '', location: '', price: '', type: '', specs: '', tag: '', image: '',
+    downPayment: '', installments: '', balloonPayments: '', deliveryDate: ''
   });
 
-  // Profile Form State
+  // Profile Form
   const [profileForm, setProfileForm] = useState(brokerProfile);
   const [socialForm, setSocialForm] = useState(socialLinks);
   
-  // FAQ Form State
+  // FAQ Form
   const [faqForm, setFaqForm] = useState({ q: '', a: '' });
+
+  // Feature Form
+  const [featureForm, setFeatureForm] = useState({ title: '', image: '' });
+
+  // --- Helpers ---
+  const formatCurrency = (value: string) => {
+    const numericValue = value.replace(/\D/g, '');
+    if (!numericValue) return '';
+    const floatValue = parseFloat(numericValue) / 100;
+    return floatValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
   // --- Handlers ---
 
   const handlePropChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setPropForm({ ...propForm, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'price' || name === 'downPayment') {
+        if (value === '') { setPropForm({ ...propForm, [name]: '' }); return; }
+        const formatted = formatCurrency(value);
+        setPropForm({ ...propForm, [name]: formatted });
+    } else {
+        setPropForm({ ...propForm, [name]: value });
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: Function, currentForm: any) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setter({ ...currentForm, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handlePropSubmit = (e: React.FormEvent) => {
@@ -43,14 +77,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     if (!propForm.title || !propForm.price) return;
     const imageToUse = propForm.image || 'https://images.unsplash.com/photo-1600596542815-2495db98dada?q=80&w=2976';
     addProperty({ ...propForm, image: imageToUse });
-    setPropForm({ title: '', location: '', price: '', type: '', specs: '', tag: '', image: '' });
+    setPropForm({ 
+        title: '', location: '', price: '', type: '', specs: '', tag: '', image: '',
+        downPayment: '', installments: '', balloonPayments: '', deliveryDate: ''
+    });
   };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateBrokerProfile(profileForm);
     updateSocialLinks(socialForm);
-    alert(usingFirebase ? 'Perfil atualizado no Google Firebase!' : 'Perfil atualizado (Salvo neste navegador)!');
+    alert('Configurações salvas!');
   };
 
   const handleFaqSubmit = (e: React.FormEvent) => {
@@ -60,16 +97,16 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     setFaqForm({ q: '', a: '' });
   };
 
-  const handleSimulateImport = () => {
-    setIsImporting(true);
-    setTimeout(() => {
-        importMockProperties();
-        setIsImporting(false);
-    }, 1500);
+  const handleFeatureSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!featureForm.title) return;
+    const img = featureForm.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000';
+    addFeature({ ...featureForm, image: img });
+    setFeatureForm({ title: '', image: '' });
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans overflow-y-auto pb-20">
+    <div className="h-screen w-full bg-[#09090b] text-white font-sans overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-zinc-700">
       <header className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button onClick={goBack} className="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-white transition-colors">
@@ -78,15 +115,10 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
           <div>
             <h1 className="text-xl font-bold font-serif text-white">Painel do Corretor</h1>
             <div className="flex items-center gap-2">
-                 <p className="text-xs text-[#d4af37] uppercase tracking-wider">Gerenciamento</p>
                  {usingFirebase ? (
-                     <span className="flex items-center gap-1 text-[10px] text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
-                        <Zap size={10} /> Online (Google)
-                     </span>
+                     <span className="flex items-center gap-1 text-[10px] text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20"><Zap size={10} /> Online (Google)</span>
                  ) : (
-                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full border border-white/5">
-                        <Database size={10} /> Local
-                     </span>
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full border border-white/5"><Database size={10} /> Local</span>
                  )}
             </div>
           </div>
@@ -94,96 +126,20 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
         
         <div className="flex gap-4">
              <div className="flex bg-zinc-900 border border-white/5 rounded-sm p-1">
-               <button 
-                 onClick={() => setActiveTab('properties')}
-                 className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'properties' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
-               >
-                 Imóveis
-               </button>
-               <button 
-                 onClick={() => setActiveTab('content')}
-                 className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'content' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
-               >
-                 Site & Conteúdo
-               </button>
+               <button onClick={() => setActiveTab('properties')} className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'properties' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}>Imóveis</button>
+               <button onClick={() => setActiveTab('content')} className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'content' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}>Site & Conteúdo</button>
             </div>
-            {!usingFirebase && (
-                <button 
-                    onClick={resetAllData} 
-                    className="p-2 text-zinc-500 hover:text-red-500 transition-colors border border-white/5 hover:border-red-500/50 rounded-sm"
-                    title="Resetar para dados padrão"
-                >
-                    <RotateCcw size={18} />
-                </button>
-            )}
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto p-6">
-        
-        {/* Warning Banner */}
-        {!usingFirebase && (
-            <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-sm flex items-start gap-3">
-                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
-                 <div>
-                    <h4 className="text-amber-500 font-bold text-sm uppercase tracking-wide mb-1">Modo Local (Offline)</h4>
-                    <p className="text-zinc-400 text-xs leading-relaxed">
-                       As alterações são salvas apenas neste navegador. Para que seus clientes vejam as mudanças em tempo real, 
-                       configure as chaves do <strong>Google Firebase</strong> no arquivo <code>services/firebase.ts</code>.
-                    </p>
-                 </div>
-            </div>
-        )}
-
-        {/* AI Tools Section (Only available if navigate is passed) */}
-        {navigate && (
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button 
-                onClick={() => navigate(AppMode.VISION)}
-                className="flex items-center gap-4 p-4 bg-purple-500/10 border border-purple-500/20 rounded-sm hover:bg-purple-500/20 transition-all group"
-              >
-                  <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:scale-110 transition-transform">
-                      <Eye size={20} />
-                  </div>
-                  <div className="text-left">
-                      <h3 className="font-bold text-white text-sm">IA Vision</h3>
-                      <p className="text-xs text-zinc-400">Analisar fotos de obras e terrenos</p>
-                  </div>
-              </button>
-
-              <button 
-                onClick={() => navigate(AppMode.IMAGE_GEN)}
-                className="flex items-center gap-4 p-4 bg-pink-500/10 border border-pink-500/20 rounded-sm hover:bg-pink-500/20 transition-all group"
-              >
-                  <div className="p-3 bg-pink-500/20 text-pink-400 rounded-full group-hover:scale-110 transition-transform">
-                      <Sparkles size={20} />
-                  </div>
-                  <div className="text-left">
-                      <h3 className="font-bold text-white text-sm">Studio Criativo</h3>
-                      <p className="text-xs text-zinc-400">Gerar concepts e decorações</p>
-                  </div>
-              </button>
-          </div>
-        )}
         
         {/* === PROPERTIES TAB === */}
         {activeTab === 'properties' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
               <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl sticky top-24">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <PlusCircle size={18} className="text-[#d4af37]" /> Novo Imóvel
-                    </h2>
-                    <button 
-                        onClick={handleSimulateImport}
-                        disabled={isImporting}
-                        title="Simular importação de CRM"
-                        className="text-zinc-400 hover:text-white transition-colors"
-                    >
-                        {isImporting ? <CheckCircle2 size={16} className="animate-spin" /> : <Database size={16} />}
-                    </button>
-                </div>
+                <h2 className="text-lg font-bold flex items-center gap-2 mb-6"><PlusCircle size={18} className="text-[#d4af37]" /> Novo Imóvel</h2>
                 
                 <form onSubmit={handlePropSubmit} className="space-y-4">
                   <div>
@@ -193,13 +149,36 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                   
                   <div className="grid grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Preço</label>
+                        <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Valor Total</label>
                         <input required name="price" value={propForm.price} onChange={handlePropChange} placeholder="R$ 0,00" className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                      </div>
                      <div>
                         <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Localização</label>
                         <input name="location" value={propForm.location} onChange={handlePropChange} placeholder="Cidade, UF" className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                      </div>
+                  </div>
+
+                   <div className="p-3 bg-white/5 rounded-sm border border-white/5 space-y-3">
+                      <p className="text-[10px] text-[#d4af37] uppercase font-bold tracking-wider">Condições de Pagamento</p>
+                      <div>
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Entrada</label>
+                          <input name="downPayment" value={propForm.downPayment} onChange={handlePropChange} placeholder="Ex: R$ 200.000,00" className="w-full bg-black/50 border border-white/10 p-2 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                          <div>
+                              <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Parcelas</label>
+                              <input name="installments" value={propForm.installments} onChange={handlePropChange} placeholder="Ex: 60x" className="w-full bg-black/50 border border-white/10 p-2 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          </div>
+                          <div>
+                              <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Balões</label>
+                              <input name="balloonPayments" value={propForm.balloonPayments} onChange={handlePropChange} placeholder="Ex: 5x" className="w-full bg-black/50 border border-white/10 p-2 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          </div>
+                      </div>
+                  </div>
+
+                  <div>
+                     <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Data de Entrega</label>
+                     <input name="deliveryDate" value={propForm.deliveryDate} onChange={handlePropChange} placeholder="Ex: Dezembro/2026" className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                   </div>
 
                   <div>
@@ -209,36 +188,40 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Tipo</label>
+                       <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Tipo / Característica</label>
                        <select name="type" value={propForm.type} onChange={handlePropChange} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm">
                           <option value="">Selecione...</option>
                           <option value="Frente Mar">Frente Mar</option>
                           <option value="Quadra Mar">Quadra Mar</option>
                           <option value="Vista Mar">Vista Mar</option>
+                          <option value="Renda Passiva">Renda Passiva</option>
                           <option value="Diferenciado">Diferenciado</option>
                        </select>
                     </div>
                     <div>
-                       <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Tag</label>
+                       <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Tag / Situação</label>
                        <select name="tag" value={propForm.tag} onChange={handlePropChange} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm">
                           <option value="">Selecione...</option>
                           <option value="Lançamento">Lançamento</option>
                           <option value="Pré-Lançamento">Pré-Lançamento</option>
-                          <option value="Renda Passiva">Renda Passiva</option>
+                          <option value="Exclusividade">Exclusividade</option>
                           <option value="Oportunidade">Oportunidade</option>
                        </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">URL da Imagem</label>
-                    <input name="image" value={propForm.image} onChange={handlePropChange} placeholder="https://..." className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                    <p className="text-[10px] text-zinc-600 mt-1">*Deixe em branco para imagem padrão</p>
+                    <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Imagem Principal</label>
+                    <div className="flex flex-col gap-2">
+                        <input name="image" value={propForm.image} onChange={handlePropChange} placeholder="URL ou Upload" className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setPropForm, propForm)} />
+                        </div>
+                    </div>
                   </div>
 
-                  <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2 transition-colors">
-                    <Save size={18} /> Adicionar Imóvel
-                  </button>
+                  <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2"><Save size={18} /> Adicionar Imóvel</button>
                 </form>
               </div>
             </div>
@@ -247,39 +230,25 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-bold">Imóveis Ativos ({properties.length})</h2>
                </div>
-
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {properties.map(prop => (
-                     <motion.div 
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        key={prop.id} 
-                        className="flex bg-[#18181b] border border-white/5 rounded-sm overflow-hidden group"
-                     >
+                     <div key={prop.id} className="flex bg-[#18181b] border border-white/5 rounded-sm overflow-hidden group min-h-[140px]">
                         <div className="w-1/3 relative">
                            <img src={prop.image} className="absolute inset-0 w-full h-full object-cover" alt={prop.title} />
-                           <div className="absolute top-2 left-2 bg-[#d4af37] text-black text-[10px] font-bold px-2 py-0.5 uppercase">
-                              {prop.tag}
-                           </div>
+                           <div className="absolute top-2 left-2 bg-[#d4af37] text-black text-[10px] font-bold px-2 py-0.5 uppercase">{prop.tag}</div>
                         </div>
                         <div className="w-2/3 p-4 flex flex-col justify-between">
                            <div>
                               <h3 className="font-bold text-white leading-tight">{prop.title}</h3>
                               <p className="text-zinc-500 text-xs mt-1">{prop.location}</p>
-                              <p className="text-[#d4af37] font-serif mt-2">{prop.price}</p>
+                              <p className="text-[#d4af37] font-serif mt-2 text-lg">{prop.price}</p>
                            </div>
-                           <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                           <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                               <span className="text-[10px] text-zinc-600 uppercase tracking-wider">{prop.type}</span>
-                              <button 
-                                onClick={() => removeProperty(prop.id)}
-                                className="text-red-900 hover:text-red-500 transition-colors p-1"
-                              >
-                                 <Trash2 size={16} />
-                              </button>
+                              <button onClick={() => removeProperty(prop.id)} className="text-red-900 hover:text-red-500 transition-colors p-1"><Trash2 size={16} /></button>
                            </div>
                         </div>
-                     </motion.div>
+                     </div>
                   ))}
                </div>
             </div>
@@ -288,15 +257,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
 
         {/* === CONTENT TAB === */}
         {activeTab === 'content' && (
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-24">
               
-              {/* Profile & Socials */}
+              {/* Profile & Logo & Pixel */}
               <div className="space-y-8">
                  <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <Users size={18} className="text-[#d4af37]" /> Perfil do Corretor
-                    </h2>
+                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><Users size={18} className="text-[#d4af37]" /> Configurações Gerais</h2>
                     <form onSubmit={handleProfileSubmit} className="space-y-4">
+                       <div>
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Logo do Header (URL)</label>
+                          <input placeholder="Deixe em branco para usar o Nome" value={profileForm.logo || ''} onChange={(e) => setProfileForm({...profileForm, logo: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                       </div>
                        <div>
                           <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Nome de Exibição</label>
                           <input required value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
@@ -309,69 +280,86 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                           <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Foto de Perfil (URL)</label>
                           <input required value={profileForm.image} onChange={(e) => setProfileForm({...profileForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                        </div>
-                       <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Biografia (Seção "Sobre")</label>
-                          <textarea required rows={6} value={profileForm.description} onChange={(e) => setProfileForm({...profileForm, description: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm resize-none" />
-                       </div>
-                       
-                       <div className="pt-4 border-t border-white/10 mt-4">
-                          <label className="block text-xs uppercase font-bold text-[#d4af37] mb-3">Redes Sociais</label>
-                          <div className="grid grid-cols-1 gap-3">
-                             <div>
-                                <label className="block text-[10px] text-zinc-500 mb-1">Link Instagram</label>
-                                <input value={socialForm.instagram} onChange={(e) => setSocialForm({...socialForm, instagram: e.target.value})} className="w-full bg-black/50 border border-white/10 p-2 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                             </div>
-                             <div>
-                                <label className="block text-[10px] text-zinc-500 mb-1">Link WhatsApp (https://wa.me/...)</label>
-                                <input value={socialForm.whatsapp} onChange={(e) => setSocialForm({...socialForm, whatsapp: e.target.value})} className="w-full bg-black/50 border border-white/10 p-2 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                             </div>
-                          </div>
+
+                       <div className="pt-6 border-t border-white/10">
+                           <div className="flex items-center gap-2 mb-2">
+                               <Code2 size={16} className="text-[#d4af37]"/>
+                               <label className="block text-xs uppercase font-bold text-white">Scripts / Pixel (Head)</label>
+                           </div>
+                           <p className="text-[10px] text-zinc-500 mb-2">Cole aqui seus scripts do Facebook Pixel, Google Analytics, etc. Eles serão injetados automaticamente.</p>
+                           <textarea 
+                              rows={6}
+                              placeholder="<script>...</script>"
+                              value={profileForm.pixelCode || ''} 
+                              onChange={(e) => setProfileForm({...profileForm, pixelCode: e.target.value})} 
+                              className="w-full bg-black/50 border border-white/10 p-3 text-xs font-mono text-zinc-300 focus:border-[#d4af37] focus:outline-none rounded-sm resize-y" 
+                           />
                        </div>
 
-                       <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2 transition-colors">
-                          <Save size={18} /> Atualizar Perfil
-                       </button>
+                       <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2"><Save size={18} /> Salvar Configurações</button>
                     </form>
                  </div>
               </div>
 
-              {/* FAQ Management */}
+              {/* Features & FAQ */}
               <div className="space-y-8">
+                 {/* Features Manager */}
                  <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <MessageSquare size={18} className="text-[#d4af37]" /> Gerenciar FAQ
-                    </h2>
+                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><LayoutGrid size={18} className="text-[#d4af37]" /> Seção "Características"</h2>
                     
-                    <form onSubmit={handleFaqSubmit} className="space-y-4 mb-8">
+                    <form onSubmit={handleFeatureSubmit} className="space-y-4 mb-8">
                        <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Pergunta</label>
-                          <input required value={faqForm.q} onChange={(e) => setFaqForm({...faqForm, q: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Título (Ex: Frente Mar)</label>
+                          <input required value={featureForm.title} onChange={(e) => setFeatureForm({...featureForm, title: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                        </div>
                        <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Resposta</label>
-                          <textarea required rows={3} value={faqForm.a} onChange={(e) => setFaqForm({...faqForm, a: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm resize-none" />
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Imagem de Fundo</label>
+                           <div className="flex flex-col gap-2">
+                                <input value={featureForm.image} onChange={(e) => setFeatureForm({...featureForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                                <div className="flex items-center gap-2">
+                                    <button type="button" onClick={() => featureInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
+                                    <input type="file" ref={featureInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setFeatureForm, featureForm)} />
+                                </div>
+                            </div>
                        </div>
-                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 transition-colors text-xs">
-                          <PlusCircle size={14} /> Adicionar FAQ
-                       </button>
+                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 text-xs"><PlusCircle size={14} /> Adicionar Característica</button>
                     </form>
 
+                    <div className="grid grid-cols-2 gap-3">
+                       {features.map(feat => (
+                          <div key={feat.id} className="relative aspect-video rounded-sm overflow-hidden group border border-white/10">
+                             <img src={feat.image} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                             <div className="absolute inset-0 flex items-center justify-center p-2 text-center">
+                                 <span className="text-sm font-bold text-white relative z-10">{feat.title}</span>
+                             </div>
+                             <button onClick={() => removeFeature(feat.id)} className="absolute top-1 right-1 bg-red-500/80 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* FAQ Manager */}
+                 <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
+                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><MessageSquare size={18} className="text-[#d4af37]" /> Gerenciar FAQ</h2>
+                    <form onSubmit={handleFaqSubmit} className="space-y-4 mb-8">
+                       <div>
+                          <input required placeholder="Pergunta" value={faqForm.q} onChange={(e) => setFaqForm({...faqForm, q: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                       </div>
+                       <div>
+                          <textarea required placeholder="Resposta" rows={3} value={faqForm.a} onChange={(e) => setFaqForm({...faqForm, a: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm resize-none" />
+                       </div>
+                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 text-xs"><PlusCircle size={14} /> Adicionar FAQ</button>
+                    </form>
                     <div className="space-y-3">
                        {faqs.map(faq => (
-                          <div key={faq.id} className="bg-black/30 border border-white/5 p-4 rounded-sm flex justify-between gap-4 group">
-                             <div>
-                                <p className="text-sm font-bold text-white mb-1">{faq.q}</p>
-                                <p className="text-xs text-zinc-500 line-clamp-2">{faq.a}</p>
-                             </div>
-                             <button onClick={() => removeFaq(faq.id)} className="text-zinc-600 hover:text-red-500 transition-colors self-start">
-                                <Trash2 size={16} />
-                             </button>
+                          <div key={faq.id} className="bg-black/30 border border-white/5 p-3 rounded-sm flex justify-between gap-4">
+                             <div><p className="text-sm font-bold text-white">{faq.q}</p></div>
+                             <button onClick={() => removeFaq(faq.id)} className="text-zinc-600 hover:text-red-500"><Trash2 size={14} /></button>
                           </div>
                        ))}
                     </div>
                  </div>
               </div>
-
            </div>
         )}
 

@@ -47,7 +47,10 @@ import {
   Database,
   Lock,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  Code2,
+  Heart
 } from 'lucide-react';
 
 export { 
@@ -98,5 +101,8 @@ export {
   Database,
   Lock,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Calendar,
+  Code2,
+  Heart
 };

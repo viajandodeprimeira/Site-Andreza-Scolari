@@ -119,7 +119,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ goBack }) => {
                     max-w-[85%] p-4 text-sm leading-relaxed
                     ${msg.role === 'user' 
                       ? 'bg-zinc-800 text-white border border-white/5' 
-                      : 'bg-[#d4af37]/10 border border-[#d4af37]/20 text-zinc-200'
+                      : 'bg-[#d4af37]/10 border border-[#d4af37]/20 text-white [&_*]:text-zinc-100 [&_strong]:text-white [&_strong]:font-bold'
                     }
                   `}
                 >

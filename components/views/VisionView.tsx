@@ -140,7 +140,7 @@ export const VisionView: React.FC<VisionViewProps> = ({ goBack }) => {
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }}
-                className="prose prose-invert prose-purple max-w-none"
+                className="prose prose-invert max-w-none text-zinc-100 [&_*]:text-zinc-100 [&_strong]:text-white [&_strong]:font-bold"
               >
                 <ReactMarkdown>{result}</ReactMarkdown>
               </motion.div>

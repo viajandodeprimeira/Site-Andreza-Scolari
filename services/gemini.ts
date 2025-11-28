@@ -70,15 +70,27 @@ export const generateImage = async (prompt: string): Promise<string> => {
       }
     });
     
+    let rejectionReason = null;
+
     // Iterate to find the image part
     if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
             if (part.inlineData) {
                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
+            // Capture text if image is missing (usually explains why)
+            if (part.text) {
+                rejectionReason = part.text;
+            }
         }
     }
-    throw new Error("No image generated in response.");
+    
+    // If we are here, no image was found.
+    if (rejectionReason) {
+        throw new Error(rejectionReason);
+    }
+    
+    throw new Error("No image generated. The model may have blocked the prompt.");
   } catch (error) {
     console.error("Gemini Image Gen Error:", error);
     throw error;

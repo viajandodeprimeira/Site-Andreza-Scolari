@@ -7,10 +7,14 @@ export interface Property {
   title: string;
   location: string;
   price: string;
-  type: string;
+  type: string; // Característica (Frente Mar, Quadra Mar...)
   specs: string;
-  tag: string;
+  tag: string; // Situação (Lançamento, Pré-Lançamento...)
   image: string;
+  downPayment?: string;
+  installments?: string;
+  balloonPayments?: string;
+  deliveryDate?: string; // New: Data de Entrega
 }
 
 export interface BrokerProfile {
@@ -18,6 +22,8 @@ export interface BrokerProfile {
   title: string;
   description: string;
   image: string;
+  logo?: string;
+  pixelCode?: string; // New: Scripts de Rastreamento
 }
 
 export interface SocialLinks {
@@ -31,18 +37,32 @@ export interface FAQ {
   a: string;
 }
 
+export interface FeatureCategory {
+  id: string | number;
+  title: string;
+  image: string;
+}
+
 interface PropertyContextType {
   properties: Property[];
   brokerProfile: BrokerProfile;
   socialLinks: SocialLinks;
   faqs: FAQ[];
+  features: FeatureCategory[];
+  
   addProperty: (property: Omit<Property, 'id'>) => void;
   removeProperty: (id: string | number) => void;
   importMockProperties: () => void;
+  
   updateBrokerProfile: (profile: BrokerProfile) => void;
   updateSocialLinks: (links: SocialLinks) => void;
+  
   addFaq: (faq: Omit<FAQ, 'id'>) => void;
   removeFaq: (id: string | number) => void;
+  
+  addFeature: (feature: Omit<FeatureCategory, 'id'>) => void;
+  removeFeature: (id: string | number) => void;
+
   resetAllData: () => void;
   usingFirebase: boolean;
 }
@@ -55,31 +75,43 @@ const DEFAULT_PROPERTIES: Property[] = [
     id: 1,
     title: 'The Ocean Collection',
     location: 'Balneário Camboriú',
-    price: 'R$ 5.200.000',
+    price: 'R$ 5.200.000,00',
     type: 'Frente Mar',
     specs: '4 Suítes | 280m²',
     tag: 'Lançamento',
-    image: 'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?q=80&w=2973&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?q=80&w=2973&auto=format&fit=crop',
+    downPayment: 'R$ 1.040.000,00',
+    installments: '60x de R$ 35.000,00',
+    balloonPayments: '5x de R$ 412.000,00',
+    deliveryDate: 'Dezembro/2026'
   },
   {
     id: 2,
     title: 'Vogue Residence',
     location: 'Itapema',
-    price: 'R$ 1.950.000',
+    price: 'R$ 1.950.000,00',
     type: 'Quadra Mar',
     specs: '3 Suítes | 145m²',
     tag: 'Pré-Lançamento',
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2900&auto=format&fit=crop'
+    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2900&auto=format&fit=crop',
+    downPayment: '20%',
+    installments: '72x direto com a construtora',
+    balloonPayments: 'Semestrais',
+    deliveryDate: 'Junho/2025'
   },
   {
     id: 3,
     title: 'Investment Studio',
     location: 'São Paulo',
-    price: 'R$ 780.000',
-    type: 'Compacto de Luxo',
+    price: 'R$ 780.000,00',
+    type: 'Renda Passiva',
     specs: '1 Suíte | 42m²',
-    tag: 'Renda Passiva',
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2880&auto=format&fit=crop'
+    tag: 'Exclusividade',
+    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2880&auto=format&fit=crop',
+    downPayment: 'R$ 150.000,00',
+    installments: 'Fluxo facilitado em 36x',
+    balloonPayments: '-',
+    deliveryDate: 'Pronto para Morar'
   }
 ];
 
@@ -87,7 +119,9 @@ const DEFAULT_PROFILE: BrokerProfile = {
   name: 'ANDREZA SCOLARI',
   title: 'Investimentos Imobiliários',
   description: 'Com anos de atuação no mercado imobiliário de luxo, me consolidei como referência para investidores que buscam segurança e alta rentabilidade.\nDiferente de corretores tradicionais, nossa abordagem é analítica e focada em números.\nEntendemos que um imóvel deve ser um ativo gerador de riqueza.',
-  image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888&auto=format&fit=crop'
+  image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888&auto=format&fit=crop',
+  logo: '',
+  pixelCode: ''
 };
 
 const DEFAULT_SOCIALS: SocialLinks = {
@@ -101,10 +135,17 @@ const DEFAULT_FAQS: FAQ[] = [
   { id: 3, q: "Por que investir no Litoral Catarinense?", a: "Regiões como Balneário Camboriú e Itapema possuem os metros quadrados mais valorizados do Brasil, garantindo liquidez e segurança." },
 ];
 
+const DEFAULT_FEATURES: FeatureCategory[] = [
+  { id: 1, title: "Lançamentos", image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop" },
+  { id: 2, title: "Frente Mar", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000&auto=format&fit=crop" },
+  { id: 3, title: "Quadra Mar", image: "https://images.unsplash.com/photo-1600596542815-2495db98dada?q=80&w=1000&auto=format&fit=crop" },
+  { id: 4, title: "Vista Mar", image: "https://images.unsplash.com/photo-1570129477492-45f003f2ddfa?q=80&w=1000&auto=format&fit=crop" },
+  { id: 5, title: "Renda Passiva", image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1000&auto=format&fit=crop" }
+];
+
 export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [usingFirebase, setUsingFirebase] = useState(false);
   
-  // Helper for LocalStorage
   const getInitialState = <T,>(key: string, fallback: T): T => {
     try {
       const stored = localStorage.getItem(key);
@@ -114,37 +155,37 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  // State
   const [properties, setProperties] = useState<Property[]>(() => getInitialState('app_properties', DEFAULT_PROPERTIES));
   const [brokerProfile, setBrokerProfile] = useState<BrokerProfile>(() => getInitialState('app_profile', DEFAULT_PROFILE));
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(() => getInitialState('app_socials', DEFAULT_SOCIALS));
   const [faqs, setFaqs] = useState<FAQ[]>(() => getInitialState('app_faqs', DEFAULT_FAQS));
+  const [features, setFeatures] = useState<FeatureCategory[]>(() => getInitialState('app_features', DEFAULT_FEATURES));
 
-  // --- Initialize Firebase Listeners ---
   useEffect(() => {
     if (USE_FIREBASE && db) {
       setUsingFirebase(true);
       
-      // Listen for Properties
       const unsubProps = onSnapshot(query(collection(db, 'properties'), orderBy('timestamp', 'desc')), (snapshot) => {
         const propsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
         if (propsData.length > 0) setProperties(propsData);
       });
 
-      // Listen for Profile (Single Doc)
       const unsubProfile = onSnapshot(doc(db, 'settings', 'profile'), (doc) => {
         if (doc.exists()) setBrokerProfile(doc.data() as BrokerProfile);
       });
 
-      // Listen for Socials (Single Doc)
       const unsubSocials = onSnapshot(doc(db, 'settings', 'socials'), (doc) => {
         if (doc.exists()) setSocialLinks(doc.data() as SocialLinks);
       });
 
-      // Listen for FAQs
       const unsubFaqs = onSnapshot(collection(db, 'faqs'), (snapshot) => {
         const faqsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FAQ));
         if (faqsData.length > 0) setFaqs(faqsData);
+      });
+
+      const unsubFeatures = onSnapshot(collection(db, 'features'), (snapshot) => {
+         const featsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeatureCategory));
+         if (featsData.length > 0) setFeatures(featsData);
       });
 
       return () => {
@@ -152,17 +193,16 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         unsubProfile();
         unsubSocials();
         unsubFaqs();
+        unsubFeatures();
       };
     } else {
-        // Fallback Persistence Effects for LocalStorage
         localStorage.setItem('app_properties', JSON.stringify(properties));
         localStorage.setItem('app_profile', JSON.stringify(brokerProfile));
         localStorage.setItem('app_socials', JSON.stringify(socialLinks));
         localStorage.setItem('app_faqs', JSON.stringify(faqs));
+        localStorage.setItem('app_features', JSON.stringify(features));
     }
-  }, [properties, brokerProfile, socialLinks, faqs]); // Dependency array mostly for LocalStorage sync
-
-  // --- Actions ---
+  }, [properties, brokerProfile, socialLinks, faqs, features]);
 
   const addProperty = async (property: Omit<Property, 'id'>) => {
     if (usingFirebase) {
@@ -213,62 +253,64 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const addFeature = async (feature: Omit<FeatureCategory, 'id'>) => {
+    if (usingFirebase) {
+       await addDoc(collection(db, 'features'), feature);
+    } else {
+       setFeatures(prev => [...prev, { ...feature, id: Date.now() }]);
+    }
+  };
+
+  const removeFeature = async (id: string | number) => {
+    if (usingFirebase) {
+       await deleteDoc(doc(db, 'features', id.toString()));
+    } else {
+       setFeatures(prev => prev.filter(f => f.id !== id));
+    }
+  };
+
   const resetAllData = () => {
-    if (window.confirm('Tem certeza? Isso apagará suas edições LOCAIS. Se estiver usando Firebase, precisa deletar no painel.')) {
+    if (window.confirm('Tem certeza? Isso apagará suas edições LOCAIS.')) {
       if (!usingFirebase) {
         setProperties(DEFAULT_PROPERTIES);
         setBrokerProfile(DEFAULT_PROFILE);
         setSocialLinks(DEFAULT_SOCIALS);
         setFaqs(DEFAULT_FAQS);
+        setFeatures(DEFAULT_FEATURES);
       }
     }
   };
 
   const importMockProperties = () => {
-    const newProps = [
-      {
-        title: 'Skyline Tower',
-        location: 'Itajaí',
-        price: 'R$ 3.500.000',
-        type: 'Vista Mar',
-        specs: '3 Suítes | 190m²',
-        tag: 'Oportunidade',
-        image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000'
-      },
-      {
-        title: 'Garden House',
-        location: 'Jurerê',
-        price: 'R$ 8.900.000',
-        type: 'Casa em Condomínio',
-        specs: '5 Suítes | 450m²',
-        tag: 'Exclusivo',
-        image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1000'
+     const newProps = [
+        {
+          title: 'Skyline Tower',
+          location: 'Itajaí',
+          price: 'R$ 3.500.000,00',
+          type: 'Vista Mar',
+          specs: '3 Suítes | 190m²',
+          tag: 'Pré-Lançamento',
+          image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000',
+          downPayment: '10%',
+          installments: '100x',
+          balloonPayments: 'Anuais',
+          deliveryDate: 'Dez/2027'
+        }
+      ];
+      if (!usingFirebase) {
+          const localProps = newProps.map((p, i) => ({ ...p, id: Date.now() + i }));
+          setProperties(prev => [...localProps, ...prev]);
       }
-    ];
-
-    if (usingFirebase) {
-        newProps.forEach(p => addProperty(p));
-    } else {
-        const localProps = newProps.map((p, i) => ({ ...p, id: Date.now() + i }));
-        setProperties(prev => [...localProps, ...prev]);
-    }
   };
 
   return (
     <PropertyContext.Provider value={{ 
-      properties, 
-      brokerProfile,
-      socialLinks,
-      faqs,
-      addProperty, 
-      removeProperty, 
-      importMockProperties,
-      updateBrokerProfile,
-      updateSocialLinks,
-      addFaq,
-      removeFaq,
-      resetAllData,
-      usingFirebase
+      properties, brokerProfile, socialLinks, faqs, features,
+      addProperty, removeProperty, importMockProperties,
+      updateBrokerProfile, updateSocialLinks,
+      addFaq, removeFaq,
+      addFeature, removeFeature,
+      resetAllData, usingFirebase
     }}>
       {children}
     </PropertyContext.Provider>

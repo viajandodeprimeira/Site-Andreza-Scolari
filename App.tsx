@@ -6,9 +6,48 @@ import { AdminView } from './components/views/AdminView';
 import { VisionView } from './components/views/VisionView';
 import { ImageGenView } from './components/views/ImageGenView';
 import { AppMode } from './types';
-import { PropertyProvider } from './contexts/PropertyContext';
+import { PropertyProvider, useProperties } from './contexts/PropertyContext';
 
-const App: React.FC = () => {
+// Helper component to inject scripts from context
+const PixelInjector: React.FC = () => {
+    const { brokerProfile } = useProperties();
+    
+    useEffect(() => {
+        if (!brokerProfile.pixelCode) return;
+
+        // Simple check to prevent re-injection if the script already exists
+        // (This is a basic implementation. For robust production use, consider using specific IDs or a Tag Manager)
+        const scriptId = 'custom-pixel-script';
+        if (document.getElementById(scriptId)) return;
+
+        try {
+            // Create a temporary container to parse the HTML string
+            const div = document.createElement('div');
+            div.innerHTML = brokerProfile.pixelCode;
+            
+            const scripts = div.getElementsByTagName('script');
+            
+            // Re-create scripts to ensure they execute
+            Array.from(scripts).forEach((script) => {
+                 const newScript = document.createElement('script');
+                 newScript.id = scriptId;
+                 if (script.src) {
+                     newScript.src = script.src;
+                     newScript.async = true;
+                 } else {
+                     newScript.textContent = script.textContent;
+                 }
+                 document.head.appendChild(newScript);
+            });
+        } catch (e) {
+            console.error("Failed to inject pixel scripts", e);
+        }
+    }, [brokerProfile.pixelCode]);
+
+    return null;
+};
+
+const AppContent: React.FC = () => {
   // Initialize state based on current URL hash
   const [mode, setModeState] = useState<AppMode>(() => {
     const hash = window.location.hash.replace('#', '');
@@ -51,8 +90,8 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <PropertyProvider>
       <main className="w-full min-h-screen bg-white text-slate-900 font-sans">
+        <PixelInjector />
         <Home setMode={setMode} />
         
         <AnimatePresence>
@@ -95,6 +134,13 @@ const App: React.FC = () => {
           )}
         </AnimatePresence>
       </main>
+  );
+}
+
+const App: React.FC = () => {
+  return (
+    <PropertyProvider>
+        <AppContent />
     </PropertyProvider>
   );
 };

@@ -23,8 +23,9 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({ goBack }) => {
     try {
       const base64Image = await generateImage(prompt);
       setImageSrc(base64Image);
-    } catch (err) {
-      setError("Failed to generate image. Please try a different prompt.");
+    } catch (err: any) {
+      // Show the actual error message (often "I cannot generate images of..." due to safety)
+      setError(err.message || "Failed to generate image. Please try a different prompt.");
     } finally {
       setLoading(false);
     }
@@ -71,8 +72,9 @@ export const ImageGenView: React.FC<ImageGenViewProps> = ({ goBack }) => {
             )}
 
             {error && (
-               <div className="text-center p-8 text-red-400">
-                  <p>{error}</p>
+               <div className="text-center p-8 text-red-400 max-w-md">
+                  <p className="font-bold mb-2">Generation Failed</p>
+                  <p className="text-sm opacity-80">{error}</p>
                </div>
             )}
 
