@@ -97,7 +97,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
     <div className="w-full bg-[#09090b] text-zinc-100 font-sans selection:bg-[#d4af37] selection:text-black">
       
       {/* Floating WhatsApp */}
-      <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-2xl hover:bg-green-500 transition-all hover:scale-110">
+      <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="Falar no WhatsApp" className="fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-2xl hover:bg-green-500 transition-all hover:scale-110">
         <MessageCircle size={28} />
       </a>
 
@@ -118,7 +118,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
         </div>
         
         <div className="flex items-center gap-4">
-          <a href={socialLinks.instagram} target="_blank" className="hidden md:block p-2 text-zinc-400 hover:text-white transition-colors">
+          <a href={socialLinks.instagram} target="_blank" aria-label="Instagram" className="hidden md:block p-2 text-zinc-400 hover:text-white transition-colors">
             <Instagram size={20} />
           </a>
           <button onClick={() => setMode(AppMode.CHAT)} className="bg-zinc-100 text-black px-5 py-2.5 rounded-none text-xs uppercase tracking-wider font-bold hover:bg-[#d4af37] hover:text-white transition-colors flex items-center gap-2">
@@ -130,7 +130,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] w-full flex items-center pt-20">
         <div className="absolute inset-0 z-0">
-          <img src={brokerProfile.heroImage || "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop"} className="w-full h-full object-cover opacity-50" alt="Luxury Interior" />
+          <img src={brokerProfile.heroImage || "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop"} className="w-full h-full object-cover opacity-50" alt="Apartamento de Luxo Frente Mar" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-[#09090b]/70 to-transparent" />
         </div>
 
@@ -231,7 +231,8 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
                     <div className="absolute inset-0 border border-[#d4af37]/30 translate-x-4 translate-y-4 rounded-sm" />
                     <img 
                       src={brokerProfile.image} 
-                      alt={brokerProfile.name} 
+                      alt={`Foto de ${brokerProfile.name} - ${brokerProfile.title}`}
+                      loading="lazy"
                       className="w-full h-full object-cover relative z-10 rounded-sm grayscale hover:grayscale-0 transition-all duration-700" 
                     />
                 </div>
@@ -277,7 +278,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
                                 target="_blank" 
                                 className="group relative aspect-square overflow-hidden bg-zinc-900 cursor-pointer"
                             >
-                                <img src={post.image} alt="Instagram Post" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
+                                <img src={post.image} loading="lazy" alt="Instagram Post Imóvel" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
                                     <div className="flex items-center gap-1 text-white text-xs font-bold">
                                         <Heart size={12} fill="white" /> {post.likes}
@@ -309,7 +310,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
                  onClick={() => handleFeatureClick(feat.title)}
                  className="relative h-[250px] group overflow-hidden cursor-pointer rounded-sm border border-white/5"
                >
-                  <img src={feat.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={feat.title} />
+                  <img src={feat.image} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={`Imóveis com característica ${feat.title}`} />
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <h3 className="text-white font-serif text-2xl md:text-3xl drop-shadow-lg text-center px-4">{feat.title}</h3>
@@ -349,7 +350,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
                     onClick={() => openPropertyDetails(prop)}
                  >
                    <div className="relative aspect-[4/5] overflow-hidden bg-zinc-900 mb-6 border border-white/5">
-                      <img src={prop.image} alt={prop.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
+                      <img src={prop.image} loading="lazy" alt={`${prop.title} - ${prop.type} em ${prop.location}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
                       <div className="absolute top-0 left-0 bg-[#d4af37] text-black text-xs font-bold px-4 py-2 uppercase tracking-widest">{prop.tag}</div>
                       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                          <p className="text-white font-serif text-2xl mb-1">{prop.price}</p>

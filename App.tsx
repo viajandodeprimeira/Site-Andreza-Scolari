@@ -6,6 +6,7 @@ import { AdminView } from './components/views/AdminView';
 import { VisionView } from './components/views/VisionView';
 import { ImageGenView } from './components/views/ImageGenView';
 import { PrivacyPolicyView } from './components/views/PrivacyPolicyView';
+import { SEOHead } from './components/seo/SEOHead';
 import { AppMode } from './types';
 import { PropertyProvider, useProperties } from './contexts/PropertyContext';
 
@@ -122,6 +123,7 @@ const AppContent: React.FC = () => {
 
   return (
       <main className="w-full min-h-screen bg-white text-slate-900 font-sans">
+        <SEOHead />
         <PixelInjector />
         
         {mode === AppMode.HOME && <Home setMode={setMode} />}
