@@ -24,6 +24,7 @@ export interface BrokerProfile {
   description: string;
   image: string;
   logo?: string;
+  heroImage?: string; // New field for Hero background
   pixelCode?: string;
 }
 
@@ -135,6 +136,7 @@ const DEFAULT_PROFILE: BrokerProfile = {
   description: 'Com anos de atuação no mercado imobiliário de luxo, me consolidei como referência para investidores que buscam segurança e alta rentabilidade.\nDiferente de corretores tradicionais, nossa abordagem é analítica e focada em números.\nEntendemos que um imóvel deve ser um ativo gerador de riqueza.',
   image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888&auto=format&fit=crop',
   logo: '',
+  heroImage: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop',
   pixelCode: ''
 };
 

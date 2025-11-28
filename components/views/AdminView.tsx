@@ -32,6 +32,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   const socialPostInputRef = useRef<HTMLInputElement>(null); // For Social Posts
   const logoInputRef = useRef<HTMLInputElement>(null); // For Logo
   const profileImageInputRef = useRef<HTMLInputElement>(null); // For Profile Pic
+  const heroImageInputRef = useRef<HTMLInputElement>(null); // For Hero Pic
   const backupInputRef = useRef<HTMLInputElement>(null); // For Backup
 
   // Property Form
@@ -422,6 +423,18 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                               <div className="flex items-center gap-2">
                                 <button type="button" onClick={() => logoInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload Logo</button>
                                 <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setProfileForm, profileForm, 'logo')} />
+                              </div>
+                          </div>
+                       </div>
+                       
+                       {/* Hero Image Field - ADDED */}
+                       <div>
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Imagem de Fundo (Hero)</label>
+                          <div className="flex flex-col gap-2">
+                              <input placeholder="URL ou Upload" value={profileForm.heroImage || ''} onChange={(e) => setProfileForm({...profileForm, heroImage: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => heroImageInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload Capa</button>
+                                <input type="file" ref={heroImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setProfileForm, profileForm, 'heroImage')} />
                               </div>
                           </div>
                        </div>

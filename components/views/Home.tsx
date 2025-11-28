@@ -129,7 +129,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] w-full flex items-center pt-20">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop" className="w-full h-full object-cover opacity-50" alt="Luxury Interior" />
+          <img src={brokerProfile.heroImage || "https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop"} className="w-full h-full object-cover opacity-50" alt="Luxury Interior" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-[#09090b]/70 to-transparent" />
         </div>
 
@@ -419,8 +419,14 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12">
            <div className="space-y-6 md:w-1/3">
              <div className="flex items-center gap-3">
-               <div className="text-[#d4af37]"><Building2 size={24} /></div>
-               <span className="font-serif font-bold text-xl tracking-wide uppercase">{brokerProfile.name}</span>
+               {brokerProfile.logo ? (
+                 <img src={brokerProfile.logo} alt={brokerProfile.name} className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all" />
+               ) : (
+                 <div className="flex items-center gap-3">
+                   <div className="text-[#d4af37]"><Building2 size={24} /></div>
+                   <span className="font-serif font-bold text-xl tracking-wide uppercase">{brokerProfile.name}</span>
+                 </div>
+               )}
              </div>
              <p className="text-zinc-500 text-sm font-light leading-relaxed">Consultoria imobiliária especializada em ativos de alta performance.</p>
            </div>

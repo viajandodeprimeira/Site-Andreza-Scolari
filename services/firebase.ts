@@ -2,43 +2,42 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 // ------------------------------------------------------------------
-// 🚨 ATENÇÃO: PASSO FINAL PARA SALVAR NA NUVEM 🚨
+// 🚨 ATENÇÃO: HORA DE COLAR AS CHAVES 🚨
 // ------------------------------------------------------------------
-// Para o site salvar e NÃO PERDER DADOS ao dar F5, você precisa
-// pegar suas chaves no site do Firebase e colar abaixo.
+// No passo 2 da tela do Firebase ("Adicionar o SDK"), ele vai mostrar
+// um código parecido com este abaixo.
 //
-// 1. Vá em: https://console.firebase.google.com/
-// 2. Clique na Engrenagem ⚙️ > Configurações do Projeto.
-// 3. Role até o fim da página.
-// 4. Copie os códigos e cole dentro das aspas abaixo.
+// Copie os códigos (letras e números aleatórios) que estão entre aspas
+// lá no site e cole aqui no lugar dos textos em MAIÚSCULO.
 // ------------------------------------------------------------------
 
 const firebaseConfig = {
-  // A URL do seu banco eu já configurei baseada no seu print:
-  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com",
-
-  // --- COLE SUAS CHAVES AQUI (Mantenha as aspas!) ---
-  
+  // 1. Cole a apiKey que o Firebase mostrou:
   apiKey: "COLE_SUA_API_KEY_AQUI",
-  // Exemplo: "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw"
 
+  // 2. Cole o authDomain:
   authDomain: "site-andreza-scolari.firebaseapp.com",
-  
+
+  // 3. Cole o projectId:
   projectId: "site-andreza-scolari",
-  
-  storageBucket: "site-andreza-scolari.firebasestorage.app",
-  
-  messagingSenderId: "1086298604090",
-  // Exemplo: "456789..."
-  
-  appId: "1:1086298604090:web:d1cb20348866819fa12b03"
-  // Exemplo: "1:456789:web:..."
+
+  // 4. Cole o storageBucket:
+  storageBucket: "site-andreza-scolari.appspot.com",
+
+  // 5. Cole o messagingSenderId:
+  messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID",
+
+  // 6. Cole o appId:
+  appId: "COLE_SEU_APP_ID",
+
+  // 7. A URL do Banco (Essa eu já preenchi para você):
+  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com"
 };
 
 // ------------------------------------------------------------------
 
-// Verifica se você já colou a chave (se não for o texto padrão)
-const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw";
+// Verifica se você já configurou a chave
+const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI";
 
 export const USE_FIREBASE = hasApiKey;
 
@@ -51,11 +50,12 @@ if (USE_FIREBASE) {
     db = getDatabase(app);
     console.log("🔥 Firebase CONECTADO com sucesso!");
   } catch (error) {
-    console.error("Erro ao conectar Firebase. Verifique se copiou as chaves corretamente.", error);
+    console.error("Erro ao conectar Firebase.", error);
     db = null; 
   }
 } else {
-    console.warn("⚠️ MODO LOCAL: Cole suas chaves no arquivo services/firebase.ts para ativar a nuvem.");
+    // Se ainda não colou as chaves, avisa no console
+    console.warn("Aguardando configuração das chaves no arquivo services/firebase.ts");
 }
 
 export { db };
