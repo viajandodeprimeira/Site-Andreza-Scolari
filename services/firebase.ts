@@ -13,7 +13,7 @@ import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   // 1. Cole a apiKey que o Firebase mostrou:
-  apiKey: "COLE_SUA_API_KEY_AQUI",
+  apiKey: "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw",
 
   // 2. Cole o authDomain:
   authDomain: "site-andreza-scolari.firebaseapp.com",
@@ -22,13 +22,13 @@ const firebaseConfig = {
   projectId: "site-andreza-scolari",
 
   // 4. Cole o storageBucket:
-  storageBucket: "site-andreza-scolari.appspot.com",
+  storageBucket: "site-andreza-scolari.firebasestorage.app",
 
   // 5. Cole o messagingSenderId:
-  messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID",
+  messagingSenderId: "1086298604090",
 
   // 6. Cole o appId:
-  appId: "COLE_SEU_APP_ID",
+  appId: "1:1086298604090:web:d1cb20348866819fa12b03",
 
   // 7. A URL do Banco (Essa eu já preenchi para você):
   databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com"
@@ -37,7 +37,7 @@ const firebaseConfig = {
 // ------------------------------------------------------------------
 
 // Verifica se você já configurou a chave
-const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI";
+const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw";
 
 export const USE_FIREBASE = hasApiKey;
 
