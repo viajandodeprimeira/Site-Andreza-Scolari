@@ -2,35 +2,45 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 
 // ------------------------------------------------------------------
-// CONFIGURAÇÃO DO FIREBASE (REALTIME DATABASE)
+// 🚨 ATENÇÃO: PASSO FINAL PARA SALVAR NA NUVEM 🚨
 // ------------------------------------------------------------------
-// PARA ATIVAR:
-// 1. Vá no Console do Firebase > Configurações do Projeto.
-// 2. Copie as chaves do SDK ("const firebaseConfig = ...").
-// 3. Cole os valores abaixo no lugar dos textos "COLE_SUA_...".
-// 4. Salve este arquivo.
+// Para o site salvar e NÃO PERDER DADOS ao dar F5, você precisa
+// pegar suas chaves no site do Firebase e colar abaixo.
+//
+// 1. Vá em: https://console.firebase.google.com/
+// 2. Clique na Engrenagem ⚙️ > Configurações do Projeto.
+// 3. Role até o fim da página.
+// 4. Copie os códigos e cole dentro das aspas abaixo.
 // ------------------------------------------------------------------
-
-const env: any = (import.meta as any).env || {};
 
 const firebaseConfig = {
-  // --- COLE SUAS CHAVES AQUI ---
-  apiKey: env.VITE_FIREBASE_API_KEY || "COLE_SUA_API_KEY_AQUI",
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "site-andreza-scolari.firebaseapp.com",
-  projectId: env.VITE_FIREBASE_PROJECT_ID || "site-andreza-scolari",
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "site-andreza-scolari.appspot.com",
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "COLE_SEU_MESSAGING_ID",
-  appId: env.VITE_FIREBASE_APP_ID || "COLE_SEU_APP_ID",
+  // A URL do seu banco eu já configurei baseada no seu print:
+  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com",
+
+  // --- COLE SUAS CHAVES AQUI (Mantenha as aspas!) ---
   
-  // URL do seu banco (Já preenchi com base no seu print)
-  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com"
+  apiKey: "COLE_SUA_API_KEY_AQUI",
+  // Exemplo: "AIzaSyD..."
+
+  authDomain: "site-andreza-scolari.firebaseapp.com",
+  
+  projectId: "site-andreza-scolari",
+  
+  storageBucket: "site-andreza-scolari.appspot.com",
+  
+  messagingSenderId: "COLE_SEU_MESSAGING_ID_AQUI",
+  // Exemplo: "456789..."
+  
+  appId: "COLE_SEU_APP_ID_AQUI"
+  // Exemplo: "1:456789:web:..."
 };
 
-// Verifica se a chave foi configurada (se não for o texto padrão)
-const isValidKey = (key: string) => key && key !== "COLE_SUA_API_KEY_AQUI" && key !== "SUA_API_KEY_AQUI";
+// ------------------------------------------------------------------
 
-// Ativa o Firebase apenas se a chave for válida
-export const USE_FIREBASE = isValidKey(firebaseConfig.apiKey);
+// Verifica se você já colou a chave (se não for o texto padrão)
+const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI";
+
+export const USE_FIREBASE = hasApiKey;
 
 let app;
 let db: any;
@@ -39,13 +49,13 @@ if (USE_FIREBASE) {
   try {
     app = initializeApp(firebaseConfig);
     db = getDatabase(app);
-    console.log("🔥 Firebase conectado! URL:", firebaseConfig.databaseURL);
+    console.log("🔥 Firebase CONECTADO com sucesso!");
   } catch (error) {
-    console.error("Erro fatal ao conectar Firebase. Verifique suas chaves.", error);
+    console.error("Erro ao conectar Firebase. Verifique se copiou as chaves corretamente.", error);
     db = null; 
   }
 } else {
-    console.log("⚠️ MODO LOCAL ATIVO: Chaves do Firebase não configuradas em services/firebase.ts");
+    console.warn("⚠️ MODO LOCAL: Cole suas chaves no arquivo services/firebase.ts para ativar a nuvem.");
 }
 
 export { db };
