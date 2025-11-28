@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2, Lock, LogIn, Instagram, Heart } from '../ui/Icons';
+import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2, Lock, LogIn, Instagram, Heart, Send } from '../ui/Icons';
 import { useProperties } from '../../contexts/PropertyContext';
 import { AppMode } from '../../types';
 
@@ -17,7 +17,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     faqs, addFaq, removeFaq,
     features, addFeature, removeFeature,
     socialPosts, addSocialPost, removeSocialPost,
-    resetAllData, usingFirebase
+    resetAllData, restoreBackup, usingFirebase
   } = useProperties();
 
   // --- Auth State ---
@@ -32,6 +32,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   const socialPostInputRef = useRef<HTMLInputElement>(null); // For Social Posts
   const logoInputRef = useRef<HTMLInputElement>(null); // For Logo
   const profileImageInputRef = useRef<HTMLInputElement>(null); // For Profile Pic
+  const backupInputRef = useRef<HTMLInputElement>(null); // For Backup
 
   // Property Form
   const [propForm, setPropForm] = useState({
@@ -137,6 +138,42 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     setSocialPostForm({ image: '', link: '', likes: '1.2k', comments: '50' });
   };
 
+  // --- Backup Handlers ---
+  const handleExportBackup = () => {
+      const data = {
+          properties,
+          brokerProfile,
+          socialLinks,
+          faqs,
+          features,
+          socialPosts,
+          timestamp: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-site-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              try {
+                  const data = JSON.parse(event.target?.result as string);
+                  restoreBackup(data);
+              } catch (err) {
+                  alert('Arquivo inválido!');
+              }
+          };
+          reader.readAsText(file);
+      }
+  };
+
   // --- RENDER LOGIN SCREEN IF NOT AUTHENTICATED ---
   if (!isAuthenticated) {
       return (
@@ -230,6 +267,24 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
 
       <div className="max-w-7xl mx-auto p-6">
         
+        {!usingFirebase && (
+            <div className="mb-6 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-sm flex items-start gap-3">
+                <AlertTriangle className="text-yellow-500 shrink-0 mt-0.5" size={18} />
+                <div className="text-sm text-yellow-200">
+                    <p className="font-bold mb-1">Atenção: Modo Local Ativado</p>
+                    <p className="opacity-80 leading-relaxed">
+                        Você não configurou as chaves do Firebase, então os dados estão sendo salvos apenas no navegador (LocalStorage). 
+                        Se você limpar o cache ou abrir em outro computador, os dados sumirão.
+                    </p>
+                    <div className="mt-3 flex gap-3">
+                         <button onClick={handleExportBackup} className="bg-yellow-500/20 hover:bg-yellow-500/30 px-3 py-1.5 rounded-sm text-xs font-bold uppercase tracking-wide flex items-center gap-2"><Save size={14}/> Baixar Backup (Segurança)</button>
+                         <button onClick={() => backupInputRef.current?.click()} className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-sm text-xs font-bold uppercase tracking-wide flex items-center gap-2"><Upload size={14}/> Restaurar Backup</button>
+                         <input type="file" ref={backupInputRef} onChange={handleImportBackup} accept=".json" className="hidden" />
+                    </div>
+                </div>
+            </div>
+        )}
+
         {/* === PROPERTIES TAB === */}
         {activeTab === 'properties' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

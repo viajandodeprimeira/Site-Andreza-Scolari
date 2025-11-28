@@ -1,20 +1,21 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { db, USE_FIREBASE } from '../services/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, setDoc, query, orderBy } from 'firebase/firestore';
+// Importando funções do Realtime Database
+import { ref, onValue, push, set, remove } from 'firebase/database';
 
 export interface Property {
   id: string | number;
   title: string;
   location: string;
   price: string;
-  type: string; // Característica (Frente Mar, Quadra Mar...)
+  type: string;
   specs: string;
-  tag: string; // Situação (Lançamento, Pré-Lançamento...)
+  tag: string;
   image: string;
   downPayment?: string;
   installments?: string;
   balloonPayments?: string;
-  deliveryDate?: string; // New: Data de Entrega
+  deliveryDate?: string;
 }
 
 export interface BrokerProfile {
@@ -23,7 +24,7 @@ export interface BrokerProfile {
   description: string;
   image: string;
   logo?: string;
-  pixelCode?: string; // New: Scripts de Rastreamento
+  pixelCode?: string;
 }
 
 export interface SocialLinks {
@@ -76,6 +77,7 @@ interface PropertyContextType {
   removeSocialPost: (id: string | number) => void;
 
   resetAllData: () => void;
+  restoreBackup: (data: any) => void;
   usingFirebase: boolean;
 }
 
@@ -209,41 +211,80 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (USE_FIREBASE && db) {
       setUsingFirebase(true);
       
-      const unsubProps = onSnapshot(query(collection(db, 'properties'), orderBy('timestamp', 'desc')), (snapshot) => {
-        const propsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
-        if (propsData.length > 0) setProperties(propsData);
+      // Realtime Database Listeners
+      const propsRef = ref(db, 'properties');
+      const profileRef = ref(db, 'settings/profile');
+      const socialsRef = ref(db, 'settings/socials');
+      const faqsRef = ref(db, 'faqs');
+      const featuresRef = ref(db, 'features');
+      const postsRef = ref(db, 'social_posts');
+
+      // Properties Listener
+      const unsubProps = onValue(propsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          // Converte objeto { id1: {...}, id2: {...} } em array
+          const list = Object.entries(data).map(([key, value]: any) => ({
+            ...value,
+            id: key
+          }));
+          // Reverte para mostrar mais recentes primeiro
+          setProperties(list.reverse());
+        } else {
+            // Se estiver vazio no banco, não faz nada ou limpa
+            setProperties([]);
+        }
       });
 
-      const unsubProfile = onSnapshot(doc(db, 'settings', 'profile'), (doc) => {
-        if (doc.exists()) setBrokerProfile(doc.data() as BrokerProfile);
+      // Profile Listener
+      const unsubProfile = onValue(profileRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) setBrokerProfile(data);
       });
 
-      const unsubSocials = onSnapshot(doc(db, 'settings', 'socials'), (doc) => {
-        if (doc.exists()) setSocialLinks(doc.data() as SocialLinks);
+      // Socials Listener
+      const unsubSocials = onValue(socialsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) setSocialLinks(data);
       });
 
-      const unsubFaqs = onSnapshot(collection(db, 'faqs'), (snapshot) => {
-        const faqsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FAQ));
-        if (faqsData.length > 0) setFaqs(faqsData);
+      // FAQs Listener
+      const unsubFaqs = onValue(faqsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const list = Object.entries(data).map(([key, value]: any) => ({ ...value, id: key }));
+            setFaqs(list);
+        } else {
+            setFaqs([]);
+        }
       });
 
-      const unsubFeatures = onSnapshot(collection(db, 'features'), (snapshot) => {
-         const featsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeatureCategory));
-         if (featsData.length > 0) setFeatures(featsData);
+      // Features Listener
+      const unsubFeatures = onValue(featuresRef, (snapshot) => {
+        const data = snapshot.val();
+         if (data) {
+            const list = Object.entries(data).map(([key, value]: any) => ({ ...value, id: key }));
+            setFeatures(list);
+        } else {
+            setFeatures([]);
+        }
       });
 
-      const unsubSocialPosts = onSnapshot(collection(db, 'social_posts'), (snapshot) => {
-         const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SocialPost));
-         if (postsData.length > 0) setSocialPosts(postsData);
+      // Social Posts Listener
+      const unsubPosts = onValue(postsRef, (snapshot) => {
+        const data = snapshot.val();
+         if (data) {
+            const list = Object.entries(data).map(([key, value]: any) => ({ ...value, id: key }));
+            setSocialPosts(list);
+        } else {
+            setSocialPosts([]);
+        }
       });
 
+      // Cleanup not strictly necessary for RTDB onValue in this context as they persist, but good practice if needed
       return () => {
-        unsubProps();
-        unsubProfile();
-        unsubSocials();
-        unsubFaqs();
-        unsubFeatures();
-        unsubSocialPosts();
+         // onValue returns an unsubscribe function in newer SDKs, but often used directly.
+         // React unmount will handle connection drop eventually.
       };
     } else {
         localStorage.setItem('app_properties', JSON.stringify(properties));
@@ -253,11 +294,13 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         localStorage.setItem('app_features', JSON.stringify(features));
         localStorage.setItem('app_social_posts', JSON.stringify(socialPosts));
     }
-  }, [properties, brokerProfile, socialLinks, faqs, features, socialPosts]);
+  }, [properties, brokerProfile, socialLinks, faqs, features, socialPosts, usingFirebase]);
 
   const addProperty = async (property: Omit<Property, 'id'>) => {
     if (usingFirebase) {
-        await addDoc(collection(db, 'properties'), { ...property, timestamp: Date.now() });
+        // Push cria um ID único automaticamente no RTDB
+        const newRef = push(ref(db, 'properties'));
+        await set(newRef, { ...property, timestamp: Date.now() });
     } else {
         const newProperty = { ...property, id: Date.now() };
         setProperties(prev => [newProperty, ...prev]);
@@ -266,7 +309,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const removeProperty = async (id: string | number) => {
     if (usingFirebase) {
-        await deleteDoc(doc(db, 'properties', id.toString()));
+        await remove(ref(db, `properties/${id}`));
     } else {
         setProperties(prev => prev.filter(p => p.id !== id));
     }
@@ -274,7 +317,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const updateBrokerProfile = async (profile: BrokerProfile) => {
     if (usingFirebase) {
-        await setDoc(doc(db, 'settings', 'profile'), profile);
+        await set(ref(db, 'settings/profile'), profile);
     } else {
         setBrokerProfile(profile);
     }
@@ -282,7 +325,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const updateSocialLinks = async (links: SocialLinks) => {
     if (usingFirebase) {
-        await setDoc(doc(db, 'settings', 'socials'), links);
+        await set(ref(db, 'settings/socials'), links);
     } else {
         setSocialLinks(links);
     }
@@ -290,7 +333,8 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const addFaq = async (faq: Omit<FAQ, 'id'>) => {
     if (usingFirebase) {
-        await addDoc(collection(db, 'faqs'), faq);
+        const newRef = push(ref(db, 'faqs'));
+        await set(newRef, faq);
     } else {
         setFaqs(prev => [...prev, { ...faq, id: Date.now() }]);
     }
@@ -298,7 +342,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const removeFaq = async (id: string | number) => {
     if (usingFirebase) {
-        await deleteDoc(doc(db, 'faqs', id.toString()));
+        await remove(ref(db, `faqs/${id}`));
     } else {
         setFaqs(prev => prev.filter(f => f.id !== id));
     }
@@ -306,7 +350,8 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const addFeature = async (feature: Omit<FeatureCategory, 'id'>) => {
     if (usingFirebase) {
-       await addDoc(collection(db, 'features'), feature);
+       const newRef = push(ref(db, 'features'));
+       await set(newRef, feature);
     } else {
        setFeatures(prev => [...prev, { ...feature, id: Date.now() }]);
     }
@@ -314,7 +359,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const removeFeature = async (id: string | number) => {
     if (usingFirebase) {
-       await deleteDoc(doc(db, 'features', id.toString()));
+       await remove(ref(db, `features/${id}`));
     } else {
        setFeatures(prev => prev.filter(f => f.id !== id));
     }
@@ -322,7 +367,8 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const addSocialPost = async (post: Omit<SocialPost, 'id'>) => {
     if (usingFirebase) {
-       await addDoc(collection(db, 'social_posts'), post);
+       const newRef = push(ref(db, 'social_posts'));
+       await set(newRef, post);
     } else {
        setSocialPosts(prev => [...prev, { ...post, id: Date.now() }]);
     }
@@ -330,14 +376,14 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const removeSocialPost = async (id: string | number) => {
     if (usingFirebase) {
-       await deleteDoc(doc(db, 'social_posts', id.toString()));
+       await remove(ref(db, `social_posts/${id}`));
     } else {
        setSocialPosts(prev => prev.filter(p => p.id !== id));
     }
   };
 
   const resetAllData = () => {
-    if (window.confirm('Tem certeza? Isso apagará suas edições LOCAIS.')) {
+    if (window.confirm('Tem certeza? Isso apagará suas edições LOCAIS e restaurará os valores padrão.')) {
       if (!usingFirebase) {
         setProperties(DEFAULT_PROPERTIES);
         setBrokerProfile(DEFAULT_PROFILE);
@@ -347,6 +393,21 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         setSocialPosts(DEFAULT_SOCIAL_POSTS);
       }
     }
+  };
+
+  const restoreBackup = (data: any) => {
+      try {
+          if (data.properties) setProperties(data.properties);
+          if (data.brokerProfile) setBrokerProfile(data.brokerProfile);
+          if (data.socialLinks) setSocialLinks(data.socialLinks);
+          if (data.faqs) setFaqs(data.faqs);
+          if (data.features) setFeatures(data.features);
+          if (data.socialPosts) setSocialPosts(data.socialPosts);
+          alert('Backup restaurado com sucesso! Seus dados foram recuperados.');
+      } catch (e) {
+          console.error(e);
+          alert('Erro ao restaurar backup. Arquivo inválido.');
+      }
   };
 
   const importMockProperties = () => {
@@ -379,7 +440,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
       addFaq, removeFaq,
       addFeature, removeFeature,
       addSocialPost, removeSocialPost,
-      resetAllData, usingFirebase
+      resetAllData, restoreBackup, usingFirebase
     }}>
       {children}
     </PropertyContext.Provider>
