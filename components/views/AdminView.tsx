@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid } from '../ui/Icons';
+import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles } from '../ui/Icons';
 import { useProperties } from '../../contexts/PropertyContext';
+import { AppMode } from '../../types';
 
 interface AdminViewProps {
   goBack: () => void;
+  navigate?: (mode: AppMode) => void;
 }
 
-export const AdminView: React.FC<AdminViewProps> = ({ goBack }) => {
+export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   const { 
     properties, addProperty, removeProperty, importMockProperties,
     brokerProfile, updateBrokerProfile,
     socialLinks, updateSocialLinks,
-    faqs, addFaq, removeFaq
+    faqs, addFaq, removeFaq, resetAllData, usingFirebase
   } = useProperties();
 
   const [activeTab, setActiveTab] = useState<'properties' | 'content'>('properties');
@@ -48,7 +50,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack }) => {
     e.preventDefault();
     updateBrokerProfile(profileForm);
     updateSocialLinks(socialForm);
-    alert('Perfil atualizado!');
+    alert(usingFirebase ? 'Perfil atualizado no Google Firebase!' : 'Perfil atualizado (Salvo neste navegador)!');
   };
 
   const handleFaqSubmit = (e: React.FormEvent) => {
@@ -67,7 +69,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans overflow-y-auto">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans overflow-y-auto pb-20">
       <header className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button onClick={goBack} className="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-white transition-colors">
@@ -75,27 +77,94 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack }) => {
           </button>
           <div>
             <h1 className="text-xl font-bold font-serif text-white">Painel do Corretor</h1>
-            <p className="text-xs text-[#d4af37] uppercase tracking-wider">Gerenciamento</p>
+            <div className="flex items-center gap-2">
+                 <p className="text-xs text-[#d4af37] uppercase tracking-wider">Gerenciamento</p>
+                 {usingFirebase ? (
+                     <span className="flex items-center gap-1 text-[10px] text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20">
+                        <Zap size={10} /> Online (Google)
+                     </span>
+                 ) : (
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full border border-white/5">
+                        <Database size={10} /> Local
+                     </span>
+                 )}
+            </div>
           </div>
         </div>
         
-        <div className="flex bg-zinc-900 border border-white/5 rounded-sm p-1">
-           <button 
-             onClick={() => setActiveTab('properties')}
-             className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'properties' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
-           >
-             Imóveis
-           </button>
-           <button 
-             onClick={() => setActiveTab('content')}
-             className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'content' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
-           >
-             Site & Conteúdo
-           </button>
+        <div className="flex gap-4">
+             <div className="flex bg-zinc-900 border border-white/5 rounded-sm p-1">
+               <button 
+                 onClick={() => setActiveTab('properties')}
+                 className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'properties' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
+               >
+                 Imóveis
+               </button>
+               <button 
+                 onClick={() => setActiveTab('content')}
+                 className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'content' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}
+               >
+                 Site & Conteúdo
+               </button>
+            </div>
+            {!usingFirebase && (
+                <button 
+                    onClick={resetAllData} 
+                    className="p-2 text-zinc-500 hover:text-red-500 transition-colors border border-white/5 hover:border-red-500/50 rounded-sm"
+                    title="Resetar para dados padrão"
+                >
+                    <RotateCcw size={18} />
+                </button>
+            )}
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto p-6">
+        
+        {/* Warning Banner */}
+        {!usingFirebase && (
+            <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-sm flex items-start gap-3">
+                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                 <div>
+                    <h4 className="text-amber-500 font-bold text-sm uppercase tracking-wide mb-1">Modo Local (Offline)</h4>
+                    <p className="text-zinc-400 text-xs leading-relaxed">
+                       As alterações são salvas apenas neste navegador. Para que seus clientes vejam as mudanças em tempo real, 
+                       configure as chaves do <strong>Google Firebase</strong> no arquivo <code>services/firebase.ts</code>.
+                    </p>
+                 </div>
+            </div>
+        )}
+
+        {/* AI Tools Section (Only available if navigate is passed) */}
+        {navigate && (
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button 
+                onClick={() => navigate(AppMode.VISION)}
+                className="flex items-center gap-4 p-4 bg-purple-500/10 border border-purple-500/20 rounded-sm hover:bg-purple-500/20 transition-all group"
+              >
+                  <div className="p-3 bg-purple-500/20 text-purple-400 rounded-full group-hover:scale-110 transition-transform">
+                      <Eye size={20} />
+                  </div>
+                  <div className="text-left">
+                      <h3 className="font-bold text-white text-sm">IA Vision</h3>
+                      <p className="text-xs text-zinc-400">Analisar fotos de obras e terrenos</p>
+                  </div>
+              </button>
+
+              <button 
+                onClick={() => navigate(AppMode.IMAGE_GEN)}
+                className="flex items-center gap-4 p-4 bg-pink-500/10 border border-pink-500/20 rounded-sm hover:bg-pink-500/20 transition-all group"
+              >
+                  <div className="p-3 bg-pink-500/20 text-pink-400 rounded-full group-hover:scale-110 transition-transform">
+                      <Sparkles size={20} />
+                  </div>
+                  <div className="text-left">
+                      <h3 className="font-bold text-white text-sm">Studio Criativo</h3>
+                      <p className="text-xs text-zinc-400">Gerar concepts e decorações</p>
+                  </div>
+              </button>
+          </div>
+        )}
         
         {/* === PROPERTIES TAB === */}
         {activeTab === 'properties' && (

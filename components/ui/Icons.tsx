@@ -45,7 +45,9 @@ import {
   PlusCircle,
   Save,
   Database,
-  Lock
+  Lock,
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 
 export { 
@@ -94,5 +96,7 @@ export {
   PlusCircle,
   Save,
   Database,
-  Lock
+  Lock,
+  RotateCcw,
+  AlertTriangle
 };

@@ -1,12 +1,22 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
+// Support both process.env (Node) and import.meta.env (Vite/Vercel)
+const getApiKey = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env.VITE_GOOGLE_API_KEY || '';
+  }
+  return process.env.API_KEY || '';
+};
+
+const apiKey = getApiKey();
 
 // Initialize the client once. 
-// Note: In a real app with user-provided keys, you might initialize this dynamically.
-const ai = new GoogleGenAI({ apiKey });
+// Note: Only initialize if key is present to avoid errors on load
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const generateText = async (prompt: string): Promise<string> => {
+  if (!ai) return "AI Configuration Missing (API Key)";
+  
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -20,9 +30,10 @@ export const generateText = async (prompt: string): Promise<string> => {
 };
 
 export const generateVisionContent = async (prompt: string, base64Image: string, mimeType: string = 'image/jpeg'): Promise<string> => {
+  if (!ai) return "AI Configuration Missing (API Key)";
+
   try {
     // Ensure base64 string doesn't have the header prefix for the API call if the SDK expects raw base64
-    // The SDK format for inlineData usually expects the raw base64 data.
     const cleanBase64 = base64Image.split(',')[1] || base64Image;
 
     const response = await ai.models.generateContent({
@@ -49,8 +60,9 @@ export const generateVisionContent = async (prompt: string, base64Image: string,
 };
 
 export const generateImage = async (prompt: string): Promise<string> => {
+  if (!ai) throw new Error("AI Configuration Missing (API Key)");
+
   try {
-    // Using gemini-2.5-flash-image for standard image generation tasks as per guidelines
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
