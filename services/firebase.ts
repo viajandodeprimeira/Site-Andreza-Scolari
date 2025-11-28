@@ -20,25 +20,25 @@ const firebaseConfig = {
   // --- COLE SUAS CHAVES AQUI (Mantenha as aspas!) ---
   
   apiKey: "COLE_SUA_API_KEY_AQUI",
-  // Exemplo: "AIzaSyD..."
+  // Exemplo: "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw"
 
   authDomain: "site-andreza-scolari.firebaseapp.com",
   
   projectId: "site-andreza-scolari",
   
-  storageBucket: "site-andreza-scolari.appspot.com",
+  storageBucket: "site-andreza-scolari.firebasestorage.app",
   
-  messagingSenderId: "COLE_SEU_MESSAGING_ID_AQUI",
+  messagingSenderId: "1086298604090",
   // Exemplo: "456789..."
   
-  appId: "COLE_SEU_APP_ID_AQUI"
+  appId: "1:1086298604090:web:d1cb20348866819fa12b03"
   // Exemplo: "1:456789:web:..."
 };
 
 // ------------------------------------------------------------------
 
 // Verifica se você já colou a chave (se não for o texto padrão)
-const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI";
+const hasApiKey = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw";
 
 export const USE_FIREBASE = hasApiKey;
 
