@@ -34,9 +34,9 @@ interface HomeProps {
 }
 
 const differentials = [
-  { icon: <TrendingUp size={24} />, title: 'Multiplicação Patrimonial', desc: 'Foco exclusivo em ativos com alto potencial de valorização acima da inflação.' },
-  { icon: <Wallet size={24} />, title: 'Renda Passiva', desc: 'Estratégias de Short Stay e Long Stay para maximizar o retorno mensal sobre o capital.' },
-  { icon: <Building2 size={24} />, title: 'Pré-Lançamentos', desc: 'Acesso à "tabela zero" de construtoras renomadas antes da abertura ao público geral.' },
+  { icon: <TrendingUp size={24} />, title: 'Multiplicação Patrimonial', desc: 'Foco exclusivo em ativos com alto potencial de valorização e alavancagem financeira.' },
+  { icon: <Wallet size={24} />, title: 'Renda Passiva', desc: 'Maximize retornos com locação Short Stay (Airbnb) em regiões turísticas como Beto Carrero e BC.' },
+  { icon: <Building2 size={24} />, title: 'Imóveis na Planta', desc: 'Acesso à "tabela zero" de construtoras e oportunidades de pré-lançamento para investidores.' },
 ];
 
 export const Home: React.FC<HomeProps> = ({ setMode }) => {
@@ -138,14 +138,14 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
            <div className="space-y-8 lg:w-1/2">
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="inline-flex items-center gap-2 border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-1.5 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse"></span>
-                <span className="text-[#d4af37] text-xs font-bold uppercase tracking-widest">Especialista em Lançamentos</span>
+                <span className="text-[#d4af37] text-xs font-bold uppercase tracking-widest">Especialista em Investimentos</span>
               </motion.div>
               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="font-serif text-5xl md:text-7xl text-white leading-[1.1]">
                 Construa Riqueza <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d4af37] to-amber-200 italic pr-2">Sólida</span>
               </motion.h1>
               <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-zinc-400 text-lg max-w-lg font-light leading-relaxed">
-                Assessoria exclusiva para investidores que buscam multiplicação patrimonial e renda passiva através do mercado imobiliário de alto padrão.
+                Assessoria para investidores que buscam rentabilidade com imóveis na planta, alavancagem financeira e renda passiva no litoral catarinense.
               </motion.p>
            </div>
            
@@ -300,7 +300,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
       <section className="py-24 bg-[#09090b] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <h2 className="font-serif text-3xl md:text-5xl text-white mb-12 text-center">
-             Qual característica você busca <br/> em um imóvel?
+             O que você busca em um <br/> investimento?
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -392,7 +392,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
       {/* FAQ */}
       <section id="faq" className="py-24 bg-[#0c0c0e] border-t border-white/5">
          <div className="max-w-3xl mx-auto px-6">
-            <h2 className="font-serif text-3xl md:text-4xl text-center text-white mb-16">Perguntas Frequentes</h2>
+            <h2 className="font-serif text-3xl md:text-4xl text-center text-white mb-16">Perguntas de Investidores</h2>
             <div className="space-y-4">
               {faqs.map((faq, idx) => (
                 <div key={idx} className="border-b border-white/10 pb-4">

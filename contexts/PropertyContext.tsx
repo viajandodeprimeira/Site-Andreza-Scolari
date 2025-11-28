@@ -118,23 +118,23 @@ const DEFAULT_PROPERTIES: Property[] = [
   {
     id: 3,
     title: 'Investment Studio',
-    location: 'São Paulo',
+    location: 'Piçarras',
     price: 'R$ 780.000,00',
     type: 'Renda Passiva',
     specs: '1 Suíte | 42m²',
-    tag: 'Exclusividade',
+    tag: 'Proximo Beto Carrero',
     image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2880&auto=format&fit=crop',
     downPayment: 'R$ 150.000,00',
     installments: 'Fluxo facilitado em 36x',
     balloonPayments: '-',
-    deliveryDate: 'Pronto para Morar'
+    deliveryDate: 'Pronto para Rentabilizar'
   }
 ];
 
 const DEFAULT_PROFILE: BrokerProfile = {
   name: 'ANDREZA SCOLARI',
-  title: 'Investimentos Imobiliários',
-  description: 'Com anos de atuação no mercado imobiliário de luxo, me consolidei como referência para investidores que buscam segurança e alta rentabilidade.\nDiferente de corretores tradicionais, nossa abordagem é analítica e focada em números.\nEntendemos que um imóvel deve ser um ativo gerador de riqueza.',
+  title: 'Especialista em Investimentos Imobiliários',
+  description: 'Minha assessoria vai além da venda: foco na alocação inteligente de capital. Especialista em imóveis na planta (Tabela Zero) e propriedades com alto potencial de renda passiva (Airbnb) próximas ao Beto Carrero e Balneário Camboriú.\n\nBuscamos liquidez e valorização acima da inflação.',
   image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888&auto=format&fit=crop',
   logo: '',
   heroImage: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop',
@@ -149,16 +149,16 @@ const DEFAULT_SOCIALS: SocialLinks = {
 };
 
 const DEFAULT_FAQS: FAQ[] = [
-  { id: 1, q: "Qual o ticket médio para investimento?", a: "Trabalhamos com oportunidades a partir de R$ 800.000 em regiões de alta demanda, com fluxo de pagamento facilitado durante a obra." },
-  { id: 2, q: "Como funciona a gestão de renda passiva?", a: "Assessoramos na escolha de imóveis em regiões turísticas ou corporativas e indicamos parceiros para gestão de locação Short Stay (Airbnb)." },
-  { id: 3, q: "Por que investir no Litoral Catarinense?", a: "Regiões como Balneário Camboriú e Itapema possuem os metros quadrados mais valorizados do Brasil, garantindo liquidez e segurança." },
+  { id: 1, q: "Por que investir em Imóveis na Planta?", a: "Comprar na planta, especialmente em regime de 'Tabela Zero' ou pré-lançamento, permite capturar a valorização máxima durante o período de obra, garantindo alavancagem financeira sobre o capital investido." },
+  { id: 2, q: "Vale a pena investir perto do Beto Carrero?", a: "Sim. A região de Penha e Piçarras tem altíssima demanda por locação de temporada (Short Stay) devido ao parque, gerando renda passiva recorrente com taxas de ocupação elevadas o ano todo." },
+  { id: 3, q: "Como funciona a gestão de Renda Passiva?", a: "Auxiliamos na escolha de ativos preparados para plataformas como Airbnb e Booking, conectando você a empresas de gestão que cuidam de tudo (check-in, limpeza), tornando o investimento 100% passivo." },
 ];
 
 const DEFAULT_FEATURES: FeatureCategory[] = [
   { id: 1, title: "Lançamentos", image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop" },
   { id: 2, title: "Frente Mar", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000&auto=format&fit=crop" },
-  { id: 3, title: "Quadra Mar", image: "https://images.unsplash.com/photo-1600596542815-2495db98dada?q=80&w=1000&auto=format&fit=crop" },
-  { id: 4, title: "Vista Mar", image: "https://images.unsplash.com/photo-1570129477492-45f003f2ddfa?q=80&w=1000&auto=format&fit=crop" },
+  { id: 3, title: "Beto Carrero / Penha", image: "https://images.unsplash.com/photo-1597039652232-4c3111818274?q=80&w=1000&auto=format&fit=crop" },
+  { id: 4, title: "Imóveis na Planta", image: "https://images.unsplash.com/photo-1570129477492-45f003f2ddfa?q=80&w=1000&auto=format&fit=crop" },
   { id: 5, title: "Renda Passiva", image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1000&auto=format&fit=crop" }
 ];
 

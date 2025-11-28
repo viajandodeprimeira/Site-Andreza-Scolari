@@ -38,11 +38,16 @@ export const ChatView: React.FC<ChatViewProps> = ({ goBack }) => {
 
     try {
       const realEstatePrompt = `
-        Você é o assistente virtual da corretora Andreza Scolari, especialista em lançamentos e pré-lançamentos imobiliários de alto padrão.
+        Você é o assistente virtual da corretora Andreza Scolari, especialista em investimentos imobiliários de alto padrão em SC.
         Seu objetivo é qualificar investidores interessados em multiplicação patrimonial e renda passiva.
         
-        Responda as perguntas do usuário em PORTUGUÊS (PT-BR) de forma elegante, profissional e objetiva.
-        Use termos do mercado financeiro e imobiliário como "taxa interna de retorno", "liquidez", "valorização".
+        INFORMAÇÕES CRUCIAIS PARA SUAS RESPOSTAS:
+        1. Beto Carrero World: Destaque a proximidade com o parque (em Penha/Piçarras) como um grande vetor de rentabilidade para locação Short Stay (Airbnb).
+        2. Imóveis na Planta: Explique o conceito de "alavancagem" e "tabela zero", onde o investidor paga apenas 10-20% de entrada e ganha a valorização sobre o valor total do imóvel durante a obra.
+        3. Renda Passiva: Mencione a gestão profissional de locação para quem não quer ter dor de cabeça com inquilinos.
+        4. Regiões: Balneário Camboriú (luxo/segurança), Itapema (valorização recorde), Piçarras/Penha (turismo/Beto Carrero).
+
+        Responda as perguntas do usuário em PORTUGUÊS (PT-BR) de forma elegante, profissional e objetiva, usando termos como "liquidez", "yield", "TIR".
         Se perguntarem sobre contato, sugira o Instagram: https://www.instagram.com/andrezascolari/?hl=pt.
         
         Pergunta do usuário: ${input}
@@ -101,7 +106,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ goBack }) => {
               <Sparkles size={32} className="mb-4 text-[#d4af37]" />
               <p className="text-sm font-light leading-relaxed">
                 Bem-vindo ao canal exclusivo. <br/>
-                Posso apresentar análises de rentabilidade, detalhes de lançamentos ou agendar uma consultoria.
+                Pergunte sobre rentabilidade no Beto Carrero, alavancagem com imóveis na planta ou agende uma consultoria.
               </p>
             </div>
           )}
@@ -133,7 +138,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ goBack }) => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
               <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 p-4 flex items-center gap-2">
                 <Loader2 size={16} className="animate-spin text-[#d4af37]" />
-                <span className="text-xs text-[#d4af37] uppercase tracking-wider">Processando dados...</span>
+                <span className="text-xs text-[#d4af37] uppercase tracking-wider">Analisando mercado...</span>
               </div>
             </motion.div>
           )}
@@ -148,7 +153,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ goBack }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Digite sua dúvida sobre investimentos..."
+              placeholder="Ex: Como investir perto do Beto Carrero?"
               className="w-full bg-[#18181b] border border-white/10 text-white rounded-none pl-5 pr-12 py-4 focus:outline-none focus:border-[#d4af37] transition-all placeholder:text-zinc-600 font-light"
             />
             <button
