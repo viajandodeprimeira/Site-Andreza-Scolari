@@ -11,11 +11,12 @@ import { getAuth } from 'firebase/auth';
 const firebaseConfig = {
   apiKey: "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw",
   authDomain: "site-andreza-scolari.firebaseapp.com",
+  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com",
   projectId: "site-andreza-scolari",
   storageBucket: "site-andreza-scolari.firebasestorage.app",
   messagingSenderId: "1086298604090",
   appId: "1:1086298604090:web:d1cb20348866819fa12b03",
-  databaseURL: "https://site-andreza-scolari-default-rtdb.firebaseio.com"
+  measurementId: "G-CWLSKEVBY1"
 };
 
 // ------------------------------------------------------------------
