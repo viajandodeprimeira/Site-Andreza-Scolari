@@ -94,9 +94,20 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
           } catch (error: any) {
               console.error("Firebase Login Error", error);
               let msg = 'Erro ao realizar login.';
-              if (error.code === 'auth/invalid-credential') msg = 'E-mail ou senha incorretos.';
-              if (error.code === 'auth/too-many-requests') msg = 'Muitas tentativas. Tente mais tarde.';
-              setLoginError(msg);
+              if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                  msg = 'E-mail ou senha incorretos.';
+              } else if (error.code === 'auth/too-many-requests') {
+                  msg = 'Muitas tentativas. Tente mais tarde.';
+              } else if (error.code === 'auth/network-request-failed') {
+                  msg = 'Erro de conexão. Verifique sua rede.';
+              } else if (error.code === 'auth/operation-not-allowed') {
+                  msg = 'Login por E-mail/Senha não ativado no Firebase Console.';
+              } else if (error.code === 'auth/unauthorized-domain') {
+                  msg = 'Domínio não autorizado. Adicione este site no Firebase Console > Auth > Settings.';
+              } else {
+                  msg = `Erro: ${error.message}`;
+              }
+              setLoginError(`${msg} (${error.code})`);
           } finally {
               setIsLoggingIn(false);
           }
@@ -266,8 +277,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                     </div>
 
                     {loginError && (
-                        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-500/10 p-3 rounded-sm border border-red-500/20">
-                            <AlertTriangle size={16} /> {loginError}
+                        <div className="flex items-center gap-2 text-red-500 text-xs bg-red-500/10 p-3 rounded-sm border border-red-500/20">
+                            <AlertTriangle size={16} className="shrink-0" /> <span className="break-words w-full">{loginError}</span>
                         </div>
                     )}
 
