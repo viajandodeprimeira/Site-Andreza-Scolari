@@ -38,16 +38,8 @@ const differentials = [
   { icon: <Building2 size={24} />, title: 'Pré-Lançamentos', desc: 'Acesso à "tabela zero" de construtoras renomadas antes da abertura ao público geral.' },
 ];
 
-// Mock Instagram Feed (Simulating a "Plugin")
-const instagramFeed = [
-    { id: 1, img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=800&auto=format&fit=crop", likes: "1.2k", comments: "45" },
-    { id: 2, img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop", likes: "856", comments: "23" },
-    { id: 3, img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800&auto=format&fit=crop", likes: "2.1k", comments: "112" },
-    { id: 4, img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop", likes: "940", comments: "34" }
-];
-
 export const Home: React.FC<HomeProps> = ({ setMode }) => {
-  const { properties, brokerProfile, socialLinks, faqs, features } = useProperties();
+  const { properties, brokerProfile, socialLinks, faqs, features, socialPosts } = useProperties();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   
   // Property Modal State
@@ -275,16 +267,16 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
                         <a href={socialLinks.instagram} target="_blank" className="text-xs text-zinc-500 hover:text-white transition-colors">Ver perfil completo</a>
                     </div>
                     
-                    {/* Simulated Instagram Grid */}
+                    {/* Simulated Instagram Grid - Powered by Context */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {instagramFeed.map((post) => (
+                        {socialPosts.map((post) => (
                             <a 
                                 key={post.id} 
-                                href={socialLinks.instagram} 
+                                href={post.link} 
                                 target="_blank" 
                                 className="group relative aspect-square overflow-hidden bg-zinc-900 cursor-pointer"
                             >
-                                <img src={post.img} alt="Instagram Post" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
+                                <img src={post.image} alt="Instagram Post" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
                                     <div className="flex items-center gap-1 text-white text-xs font-bold">
                                         <Heart size={12} fill="white" /> {post.likes}

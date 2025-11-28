@@ -43,12 +43,21 @@ export interface FeatureCategory {
   image: string;
 }
 
+export interface SocialPost {
+  id: string | number;
+  image: string;
+  link: string;
+  likes: string;
+  comments: string;
+}
+
 interface PropertyContextType {
   properties: Property[];
   brokerProfile: BrokerProfile;
   socialLinks: SocialLinks;
   faqs: FAQ[];
   features: FeatureCategory[];
+  socialPosts: SocialPost[];
   
   addProperty: (property: Omit<Property, 'id'>) => void;
   removeProperty: (id: string | number) => void;
@@ -62,6 +71,9 @@ interface PropertyContextType {
   
   addFeature: (feature: Omit<FeatureCategory, 'id'>) => void;
   removeFeature: (id: string | number) => void;
+
+  addSocialPost: (post: Omit<SocialPost, 'id'>) => void;
+  removeSocialPost: (id: string | number) => void;
 
   resetAllData: () => void;
   usingFirebase: boolean;
@@ -143,6 +155,37 @@ const DEFAULT_FEATURES: FeatureCategory[] = [
   { id: 5, title: "Renda Passiva", image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1000&auto=format&fit=crop" }
 ];
 
+const DEFAULT_SOCIAL_POSTS: SocialPost[] = [
+    { 
+      id: 1, 
+      image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop", 
+      likes: "2.4k", 
+      comments: "142",
+      link: "https://www.instagram.com/andrezascolari/" 
+    },
+    { 
+      id: 2, 
+      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1000&auto=format&fit=crop", 
+      likes: "1.8k", 
+      comments: "98",
+      link: "https://www.instagram.com/andrezascolari/" 
+    },
+    { 
+      id: 3, 
+      image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000&auto=format&fit=crop", 
+      likes: "3.1k", 
+      comments: "215",
+      link: "https://www.instagram.com/andrezascolari/" 
+    },
+    { 
+      id: 4, 
+      image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1000&auto=format&fit=crop", 
+      likes: "940", 
+      comments: "34",
+      link: "https://www.instagram.com/andrezascolari/" 
+    }
+];
+
 export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [usingFirebase, setUsingFirebase] = useState(false);
   
@@ -160,6 +203,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(() => getInitialState('app_socials', DEFAULT_SOCIALS));
   const [faqs, setFaqs] = useState<FAQ[]>(() => getInitialState('app_faqs', DEFAULT_FAQS));
   const [features, setFeatures] = useState<FeatureCategory[]>(() => getInitialState('app_features', DEFAULT_FEATURES));
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>(() => getInitialState('app_social_posts', DEFAULT_SOCIAL_POSTS));
 
   useEffect(() => {
     if (USE_FIREBASE && db) {
@@ -188,12 +232,18 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
          if (featsData.length > 0) setFeatures(featsData);
       });
 
+      const unsubSocialPosts = onSnapshot(collection(db, 'social_posts'), (snapshot) => {
+         const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SocialPost));
+         if (postsData.length > 0) setSocialPosts(postsData);
+      });
+
       return () => {
         unsubProps();
         unsubProfile();
         unsubSocials();
         unsubFaqs();
         unsubFeatures();
+        unsubSocialPosts();
       };
     } else {
         localStorage.setItem('app_properties', JSON.stringify(properties));
@@ -201,8 +251,9 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         localStorage.setItem('app_socials', JSON.stringify(socialLinks));
         localStorage.setItem('app_faqs', JSON.stringify(faqs));
         localStorage.setItem('app_features', JSON.stringify(features));
+        localStorage.setItem('app_social_posts', JSON.stringify(socialPosts));
     }
-  }, [properties, brokerProfile, socialLinks, faqs, features]);
+  }, [properties, brokerProfile, socialLinks, faqs, features, socialPosts]);
 
   const addProperty = async (property: Omit<Property, 'id'>) => {
     if (usingFirebase) {
@@ -269,6 +320,22 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const addSocialPost = async (post: Omit<SocialPost, 'id'>) => {
+    if (usingFirebase) {
+       await addDoc(collection(db, 'social_posts'), post);
+    } else {
+       setSocialPosts(prev => [...prev, { ...post, id: Date.now() }]);
+    }
+  };
+
+  const removeSocialPost = async (id: string | number) => {
+    if (usingFirebase) {
+       await deleteDoc(doc(db, 'social_posts', id.toString()));
+    } else {
+       setSocialPosts(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
   const resetAllData = () => {
     if (window.confirm('Tem certeza? Isso apagará suas edições LOCAIS.')) {
       if (!usingFirebase) {
@@ -277,6 +344,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         setSocialLinks(DEFAULT_SOCIALS);
         setFaqs(DEFAULT_FAQS);
         setFeatures(DEFAULT_FEATURES);
+        setSocialPosts(DEFAULT_SOCIAL_POSTS);
       }
     }
   };
@@ -305,11 +373,12 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   return (
     <PropertyContext.Provider value={{ 
-      properties, brokerProfile, socialLinks, faqs, features,
+      properties, brokerProfile, socialLinks, faqs, features, socialPosts,
       addProperty, removeProperty, importMockProperties,
       updateBrokerProfile, updateSocialLinks,
       addFaq, removeFaq,
       addFeature, removeFeature,
+      addSocialPost, removeSocialPost,
       resetAllData, usingFirebase
     }}>
       {children}

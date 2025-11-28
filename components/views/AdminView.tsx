@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2 } from '../ui/Icons';
+import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2, Lock, LogIn, Instagram, Heart } from '../ui/Icons';
 import { useProperties } from '../../contexts/PropertyContext';
 import { AppMode } from '../../types';
 
@@ -16,13 +16,22 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     socialLinks, updateSocialLinks,
     faqs, addFaq, removeFaq,
     features, addFeature, removeFeature,
+    socialPosts, addSocialPost, removeSocialPost,
     resetAllData, usingFirebase
   } = useProperties();
 
+  // --- Auth State ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [activeTab, setActiveTab] = useState<'properties' | 'content'>('properties');
-  const [isImporting, setIsImporting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const featureInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null); // For Properties
+  const featureInputRef = useRef<HTMLInputElement>(null); // For Features
+  const socialPostInputRef = useRef<HTMLInputElement>(null); // For Social Posts
+  const logoInputRef = useRef<HTMLInputElement>(null); // For Logo
+  const profileImageInputRef = useRef<HTMLInputElement>(null); // For Profile Pic
 
   // Property Form
   const [propForm, setPropForm] = useState({
@@ -40,6 +49,9 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   // Feature Form
   const [featureForm, setFeatureForm] = useState({ title: '', image: '' });
 
+  // Social Post Form
+  const [socialPostForm, setSocialPostForm] = useState({ image: '', link: '', likes: '1.2k', comments: '50' });
+
   // --- Helpers ---
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
@@ -49,6 +61,16 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   };
 
   // --- Handlers ---
+
+  const handleLogin = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (loginEmail === 'andrezascolaricorretora@gmail.com' && loginPass === 'Ac241124!') {
+          setIsAuthenticated(true);
+          setLoginError('');
+      } else {
+          setLoginError('Credenciais inválidas.');
+      }
+  };
 
   const handlePropChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -61,12 +83,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: Function, currentForm: any) => {
+  // Generic Image Upload Handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: Function, currentForm: any, fieldName: string = 'image') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setter({ ...currentForm, image: reader.result as string });
+        setter({ ...currentForm, [fieldName]: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
@@ -105,6 +128,79 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
     setFeatureForm({ title: '', image: '' });
   };
 
+  const handleSocialPostSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!socialPostForm.image) return;
+    // Default link to profile if empty
+    const link = socialPostForm.link || socialLinks.instagram;
+    addSocialPost({ ...socialPostForm, link });
+    setSocialPostForm({ image: '', link: '', likes: '1.2k', comments: '50' });
+  };
+
+  // --- RENDER LOGIN SCREEN IF NOT AUTHENTICATED ---
+  if (!isAuthenticated) {
+      return (
+        <div className="h-screen w-full bg-[#09090b] text-white font-sans flex items-center justify-center p-6">
+            <div className="w-full max-w-md bg-[#18181b] border border-white/10 p-8 rounded-lg shadow-2xl">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="bg-[#d4af37]/10 p-4 rounded-full mb-4">
+                        <Lock size={32} className="text-[#d4af37]" />
+                    </div>
+                    <h1 className="text-2xl font-serif font-bold text-white">Área Restrita</h1>
+                    <p className="text-zinc-500 text-sm">Acesso exclusivo para corretores.</p>
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                        <label className="block text-xs uppercase font-bold text-zinc-500 mb-2">E-mail</label>
+                        <input 
+                            type="email" 
+                            required 
+                            value={loginEmail} 
+                            onChange={(e) => setLoginEmail(e.target.value)} 
+                            className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm"
+                            placeholder="seu@email.com"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs uppercase font-bold text-zinc-500 mb-2">Senha</label>
+                        <input 
+                            type="password" 
+                            required 
+                            value={loginPass} 
+                            onChange={(e) => setLoginPass(e.target.value)} 
+                            className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    {loginError && (
+                        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-500/10 p-3 rounded-sm border border-red-500/20">
+                            <AlertTriangle size={16} /> {loginError}
+                        </div>
+                    )}
+
+                    <button 
+                        type="submit" 
+                        className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 flex items-center justify-center gap-2 transition-colors"
+                    >
+                        <LogIn size={18} /> Entrar
+                    </button>
+                    
+                    <button 
+                        type="button" 
+                        onClick={goBack} 
+                        className="w-full text-zinc-500 text-xs hover:text-white transition-colors text-center mt-4"
+                    >
+                        Voltar ao Site
+                    </button>
+                </form>
+            </div>
+        </div>
+      );
+  }
+
+  // --- RENDER ADMIN DASHBOARD ---
   return (
     <div className="h-screen w-full bg-[#09090b] text-white font-sans overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-zinc-700">
       <header className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between">
@@ -216,7 +312,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                         <input name="image" value={propForm.image} onChange={handlePropChange} placeholder="URL ou Upload" className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                         <div className="flex items-center gap-2">
                             <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
-                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setPropForm, propForm)} />
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setPropForm, propForm, 'image')} />
                         </div>
                     </div>
                   </div>
@@ -265,9 +361,16 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                     <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><Users size={18} className="text-[#d4af37]" /> Configurações Gerais</h2>
                     <form onSubmit={handleProfileSubmit} className="space-y-4">
                        <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Logo do Header (URL)</label>
-                          <input placeholder="Deixe em branco para usar o Nome" value={profileForm.logo || ''} onChange={(e) => setProfileForm({...profileForm, logo: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Logo do Header</label>
+                          <div className="flex flex-col gap-2">
+                              <input placeholder="URL ou Upload" value={profileForm.logo || ''} onChange={(e) => setProfileForm({...profileForm, logo: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload Logo</button>
+                                <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setProfileForm, profileForm, 'logo')} />
+                              </div>
+                          </div>
                        </div>
+                       
                        <div>
                           <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Nome de Exibição</label>
                           <input required value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
@@ -276,9 +379,16 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                           <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Subtítulo / Cargo</label>
                           <input required value={profileForm.title} onChange={(e) => setProfileForm({...profileForm, title: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                        </div>
+                       
                        <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Foto de Perfil (URL)</label>
-                          <input required value={profileForm.image} onChange={(e) => setProfileForm({...profileForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Foto de Perfil</label>
+                          <div className="flex flex-col gap-2">
+                              <input required value={profileForm.image} onChange={(e) => setProfileForm({...profileForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => profileImageInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload Foto</button>
+                                <input type="file" ref={profileImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setProfileForm, profileForm, 'image')} />
+                              </div>
+                          </div>
                        </div>
 
                        <div className="pt-6 border-t border-white/10">
@@ -299,6 +409,54 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                        <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2"><Save size={18} /> Salvar Configurações</button>
                     </form>
                  </div>
+
+                 {/* Social Posts (Instagram Grid) Manager */}
+                 <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
+                     <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><Instagram size={18} className="text-[#d4af37]" /> Grade do Instagram</h2>
+                     
+                     <form onSubmit={handleSocialPostSubmit} className="space-y-4 mb-8">
+                        <div>
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Imagem do Post</label>
+                           <div className="flex flex-col gap-2">
+                                <input value={socialPostForm.image} onChange={(e) => setSocialPostForm({...socialPostForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                                <div className="flex items-center gap-2">
+                                    <button type="button" onClick={() => socialPostInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
+                                    <input type="file" ref={socialPostInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setSocialPostForm, socialPostForm, 'image')} />
+                                </div>
+                            </div>
+                       </div>
+                       
+                       <div>
+                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Link do Post (Opcional)</label>
+                          <input placeholder="https://instagram.com/p/..." value={socialPostForm.link} onChange={(e) => setSocialPostForm({...socialPostForm, link: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                       </div>
+
+                       <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Likes</label>
+                            <input placeholder="1.2k" value={socialPostForm.likes} onChange={(e) => setSocialPostForm({...socialPostForm, likes: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Comentários</label>
+                            <input placeholder="50" value={socialPostForm.comments} onChange={(e) => setSocialPostForm({...socialPostForm, comments: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
+                          </div>
+                       </div>
+
+                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 text-xs"><PlusCircle size={14} /> Adicionar Post</button>
+                     </form>
+
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                         {socialPosts.map(post => (
+                             <div key={post.id} className="relative aspect-square group overflow-hidden border border-white/10">
+                                 <img src={post.image} className="w-full h-full object-cover" alt="Post" />
+                                 <button onClick={() => removeSocialPost(post.id)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
+                                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-1 flex justify-center gap-2 text-[10px] text-white">
+                                    <span className="flex items-center gap-0.5"><Heart size={8} /> {post.likes}</span>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+                 </div>
               </div>
 
               {/* Features & FAQ */}
@@ -318,7 +476,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                                 <input value={featureForm.image} onChange={(e) => setFeatureForm({...featureForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
                                 <div className="flex items-center gap-2">
                                     <button type="button" onClick={() => featureInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
-                                    <input type="file" ref={featureInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setFeatureForm, featureForm)} />
+                                    <input type="file" ref={featureInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setFeatureForm, featureForm, 'image')} />
                                 </div>
                             </div>
                        </div>

@@ -50,7 +50,8 @@ import {
   AlertTriangle,
   Calendar,
   Code2,
-  Heart
+  Heart,
+  LogIn
 } from 'lucide-react';
 
 export { 
@@ -104,5 +105,6 @@ export {
   AlertTriangle,
   Calendar,
   Code2,
-  Heart
+  Heart,
+  LogIn
 };
