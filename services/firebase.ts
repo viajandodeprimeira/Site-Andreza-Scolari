@@ -5,6 +5,8 @@ import { getAuth } from 'firebase/auth';
 // ------------------------------------------------------------------
 // CONFIGURAÇÃO DO FIREBASE
 // ------------------------------------------------------------------
+// Dados transcritos da imagem enviada pelo usuário.
+// A apiKey abaixo serve tanto para o Database quanto para o Authentication.
 
 const firebaseConfig = {
   apiKey: "AIzaSyAgTqVqwYWRQWtrX8jpOSypkYOo31vtWYw",
@@ -18,8 +20,11 @@ const firebaseConfig = {
 
 // ------------------------------------------------------------------
 
-// Lógica simplificada: Se tem apiKey, usa o Firebase.
-export const USE_FIREBASE = !!firebaseConfig.apiKey;
+// Validação simples
+export const USE_FIREBASE = 
+  !!firebaseConfig.apiKey && 
+  firebaseConfig.apiKey !== "SUA_API_KEY_AQUI" &&
+  firebaseConfig.apiKey.length > 10;
 
 let app;
 let db: any;
@@ -30,12 +35,14 @@ if (USE_FIREBASE) {
     app = initializeApp(firebaseConfig);
     db = getDatabase(app);
     auth = getAuth(app);
-    console.log("🔥 Firebase (Auth & Database) CONECTADO com sucesso!");
+    console.log("🔥 Firebase conectado com sucesso!");
   } catch (error) {
-    console.error("Erro ao conectar Firebase.", error);
-    db = null; 
+    console.error("Erro na conexão Firebase:", error);
+    db = null;
     auth = null;
   }
+} else {
+  console.warn("⚠️ Firebase não configurado corretamente. Rodando em Modo Local.");
 }
 
 export { db, auth };
