@@ -23,7 +23,7 @@ const firebaseConfig = {
 // Validação simples
 export const USE_FIREBASE = 
   !!firebaseConfig.apiKey && 
-  firebaseConfig.apiKey !== "SUA_API_KEY_AQUI" &&
+  firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jpOSypkYOo31vtWYw" &&
   firebaseConfig.apiKey.length > 10;
 
 let app;
