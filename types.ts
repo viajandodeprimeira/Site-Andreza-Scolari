@@ -6,6 +6,7 @@ export enum AppMode {
   VISION = 'VISION',
   IMAGE_GEN = 'IMAGE_GEN',
   ADMIN = 'ADMIN',
+  PRIVACY = 'PRIVACY',
 }
 
 export interface ChatMessage {

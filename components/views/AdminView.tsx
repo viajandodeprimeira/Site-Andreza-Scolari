@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2, Lock, LogIn, Instagram, Heart, Send } from '../ui/Icons';
+import { ArrowLeft, Trash2, PlusCircle, Save, Database, Upload, CheckCircle2, Users, MessageSquare, LayoutGrid, AlertTriangle, RotateCcw, Zap, Eye, ImageIcon, Sparkles, Building2, Calendar, Code2, Lock, LogIn, Instagram, Heart, Send, Loader2 } from '../ui/Icons';
 import { useProperties } from '../../contexts/PropertyContext';
 import { AppMode } from '../../types';
+import { auth } from '../../services/firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, User } from 'firebase/auth';
 
 interface AdminViewProps {
   goBack: () => void;
@@ -21,10 +23,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   } = useProperties();
 
   // --- Auth State ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'properties' | 'content'>('properties');
   const fileInputRef = useRef<HTMLInputElement>(null); // For Properties
@@ -54,6 +58,20 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
   // Social Post Form
   const [socialPostForm, setSocialPostForm] = useState({ image: '', link: '', likes: '1.2k', comments: '50' });
 
+  // --- Auth Effect ---
+  useEffect(() => {
+    if (usingFirebase && auth) {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setAuthLoading(false);
+        });
+        return () => unsubscribe();
+    } else {
+        // Fallback for local mode (dev only) without auth
+        setAuthLoading(false);
+    }
+  }, [usingFirebase]);
+
   // --- Helpers ---
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
@@ -64,14 +82,40 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
 
   // --- Handlers ---
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (loginEmail === 'andrezascolaricorretora@gmail.com' && loginPass === 'Ac241124!') {
-          setIsAuthenticated(true);
-          setLoginError('');
+      setLoginError('');
+      setIsLoggingIn(true);
+
+      if (usingFirebase && auth) {
+          try {
+              await signInWithEmailAndPassword(auth, loginEmail, loginPass);
+              // Auth state listener will handle the rest
+          } catch (error: any) {
+              console.error("Firebase Login Error", error);
+              let msg = 'Erro ao realizar login.';
+              if (error.code === 'auth/invalid-credential') msg = 'E-mail ou senha incorretos.';
+              if (error.code === 'auth/too-many-requests') msg = 'Muitas tentativas. Tente mais tarde.';
+              setLoginError(msg);
+          } finally {
+              setIsLoggingIn(false);
+          }
       } else {
-          setLoginError('Credenciais inválidas.');
+          // Dev Mode / Local Storage Mode
+          // Allow any login in dev mode if firebase is not connected, but warn user
+          if (loginEmail && loginPass) {
+             setUser({ email: 'dev@local.com' } as User);
+             alert('Modo Local (Sem Firebase): Login simulado.');
+          }
+          setIsLoggingIn(false);
       }
+  };
+
+  const handleLogout = async () => {
+      if (usingFirebase && auth) {
+          await signOut(auth);
+      }
+      setUser(null);
   };
 
   const handlePropChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -175,8 +219,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
       }
   };
 
+  // --- RENDER LOADING ---
+  if (authLoading) {
+      return (
+          <div className="h-screen w-full bg-[#09090b] flex items-center justify-center">
+              <Loader2 className="text-[#d4af37] animate-spin" size={32} />
+          </div>
+      );
+  }
+
   // --- RENDER LOGIN SCREEN IF NOT AUTHENTICATED ---
-  if (!isAuthenticated) {
+  if (!user) {
       return (
         <div className="h-screen w-full bg-[#09090b] text-white font-sans flex items-center justify-center p-6">
             <div className="w-full max-w-md bg-[#18181b] border border-white/10 p-8 rounded-lg shadow-2xl">
@@ -220,9 +273,11 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
 
                     <button 
                         type="submit" 
-                        className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 flex items-center justify-center gap-2 transition-colors"
+                        disabled={isLoggingIn}
+                        className="w-full bg-[#d4af37] hover:bg-[#c4a030] disabled:opacity-50 text-black font-bold uppercase tracking-widest py-3 flex items-center justify-center gap-2 transition-colors"
                     >
-                        <LogIn size={18} /> Entrar
+                        {isLoggingIn ? <Loader2 size={18} className="animate-spin"/> : <LogIn size={18} />} 
+                        {isLoggingIn ? 'Entrando...' : 'Entrar'}
                     </button>
                     
                     <button 
@@ -250,19 +305,22 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
             <h1 className="text-xl font-bold font-serif text-white">Painel do Corretor</h1>
             <div className="flex items-center gap-2">
                  {usingFirebase ? (
-                     <span className="flex items-center gap-1 text-[10px] text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20"><Zap size={10} /> Online (Google)</span>
+                     <span className="flex items-center gap-1 text-[10px] text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded-full border border-green-500/20"><Zap size={10} /> Online ({user.email})</span>
                  ) : (
-                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full border border-white/5"><Database size={10} /> Local</span>
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded-full border border-white/5"><Database size={10} /> Local (Sem Sync)</span>
                  )}
             </div>
           </div>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
              <div className="flex bg-zinc-900 border border-white/5 rounded-sm p-1">
                <button onClick={() => setActiveTab('properties')} className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'properties' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}>Imóveis</button>
                <button onClick={() => setActiveTab('content')} className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors ${activeTab === 'content' ? 'bg-[#d4af37] text-black' : 'text-zinc-400 hover:text-white'}`}>Site & Conteúdo</button>
             </div>
+            <button onClick={handleLogout} className="p-2 hover:bg-white/5 rounded-sm text-red-400 hover:text-red-300 transition-colors" title="Sair">
+                <LogIn size={18} className="rotate-180" />
+            </button>
         </div>
       </header>
 
@@ -459,19 +517,59 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                           </div>
                        </div>
 
+                       {/* Social Media Fields - NEW */}
+                       <div className="pt-4 border-t border-white/10 mt-4">
+                           <label className="block text-xs uppercase font-bold text-zinc-500 mb-3">Redes Sociais & Contato</label>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div>
+                                   <label className="block text-[10px] uppercase font-bold text-zinc-600 mb-1">WhatsApp (Link Completo)</label>
+                                   <input 
+                                       placeholder="https://wa.me/55..." 
+                                       value={socialForm.whatsapp} 
+                                       onChange={(e) => setSocialForm({...socialForm, whatsapp: e.target.value})} 
+                                       className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" 
+                                   />
+                               </div>
+                               <div>
+                                   <label className="block text-[10px] uppercase font-bold text-zinc-600 mb-1">Instagram (Link Perfil)</label>
+                                   <input 
+                                       placeholder="https://instagram.com/..." 
+                                       value={socialForm.instagram} 
+                                       onChange={(e) => setSocialForm({...socialForm, instagram: e.target.value})} 
+                                       className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" 
+                                   />
+                               </div>
+                           </div>
+                       </div>
+
                        <div className="pt-6 border-t border-white/10">
                            <div className="flex items-center gap-2 mb-2">
                                <Code2 size={16} className="text-[#d4af37]"/>
-                               <label className="block text-xs uppercase font-bold text-white">Scripts / Pixel (Head)</label>
+                               <label className="block text-xs uppercase font-bold text-white">Scripts / Tracking (Head)</label>
                            </div>
-                           <p className="text-[10px] text-zinc-500 mb-2">Cole aqui seus scripts do Facebook Pixel, Google Analytics, etc. Eles serão injetados automaticamente.</p>
-                           <textarea 
-                              rows={6}
-                              placeholder="<script>...</script>"
-                              value={profileForm.pixelCode || ''} 
-                              onChange={(e) => setProfileForm({...profileForm, pixelCode: e.target.value})} 
-                              className="w-full bg-black/50 border border-white/10 p-3 text-xs font-mono text-zinc-300 focus:border-[#d4af37] focus:outline-none rounded-sm resize-y" 
-                           />
+                           
+                           <div className="mb-4">
+                                <label className="block text-[10px] uppercase font-bold text-zinc-600 mb-1">Google Analytics 4 ID (G-XXXXX)</label>
+                                <input 
+                                    placeholder="G-XXXXXXXXXX" 
+                                    value={profileForm.googleAnalyticsId || ''} 
+                                    onChange={(e) => setProfileForm({...profileForm, googleAnalyticsId: e.target.value})} 
+                                    className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" 
+                                />
+                                <p className="text-[10px] text-zinc-500 mt-1">Cole apenas o ID (ex: G-123456789). Nós geramos o script automaticamente.</p>
+                           </div>
+
+                           <div className="border-t border-white/5 pt-4">
+                                <label className="block text-[10px] uppercase font-bold text-zinc-600 mb-1">Outros Scripts / Facebook Pixel</label>
+                                <p className="text-[10px] text-zinc-500 mb-2">Cole o código completo (&lt;script&gt;...&lt;/script&gt;).</p>
+                                <textarea 
+                                    rows={6}
+                                    placeholder="<script>...</script>"
+                                    value={profileForm.pixelCode || ''} 
+                                    onChange={(e) => setProfileForm({...profileForm, pixelCode: e.target.value})} 
+                                    className="w-full bg-black/50 border border-white/10 p-3 text-xs font-mono text-zinc-300 focus:border-[#d4af37] focus:outline-none rounded-sm resize-y" 
+                                />
+                           </div>
                        </div>
 
                        <button type="submit" className="w-full bg-[#d4af37] hover:bg-[#c4a030] text-black font-bold uppercase tracking-widest py-3 mt-4 flex items-center justify-center gap-2"><Save size={18} /> Salvar Configurações</button>
@@ -524,66 +622,6 @@ export const AdminView: React.FC<AdminViewProps> = ({ goBack, navigate }) => {
                              </div>
                          ))}
                      </div>
-                 </div>
-              </div>
-
-              {/* Features & FAQ */}
-              <div className="space-y-8">
-                 {/* Features Manager */}
-                 <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><LayoutGrid size={18} className="text-[#d4af37]" /> Seção "Características"</h2>
-                    
-                    <form onSubmit={handleFeatureSubmit} className="space-y-4 mb-8">
-                       <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Título (Ex: Frente Mar)</label>
-                          <input required value={featureForm.title} onChange={(e) => setFeatureForm({...featureForm, title: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                       </div>
-                       <div>
-                          <label className="block text-xs uppercase font-bold text-zinc-500 mb-1">Imagem de Fundo</label>
-                           <div className="flex flex-col gap-2">
-                                <input value={featureForm.image} onChange={(e) => setFeatureForm({...featureForm, image: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                                <div className="flex items-center gap-2">
-                                    <button type="button" onClick={() => featureInputRef.current?.click()} className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs py-2 px-3 rounded-sm flex items-center justify-center gap-2 border border-white/10"><Upload size={14} /> Upload</button>
-                                    <input type="file" ref={featureInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setFeatureForm, featureForm, 'image')} />
-                                </div>
-                            </div>
-                       </div>
-                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 text-xs"><PlusCircle size={14} /> Adicionar Característica</button>
-                    </form>
-
-                    <div className="grid grid-cols-2 gap-3">
-                       {features.map(feat => (
-                          <div key={feat.id} className="relative aspect-video rounded-sm overflow-hidden group border border-white/10">
-                             <img src={feat.image} className="absolute inset-0 w-full h-full object-cover opacity-50" />
-                             <div className="absolute inset-0 flex items-center justify-center p-2 text-center">
-                                 <span className="text-sm font-bold text-white relative z-10">{feat.title}</span>
-                             </div>
-                             <button onClick={() => removeFeature(feat.id)} className="absolute top-1 right-1 bg-red-500/80 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
-                          </div>
-                       ))}
-                    </div>
-                 </div>
-
-                 {/* FAQ Manager */}
-                 <div className="bg-[#18181b] border border-white/5 p-6 rounded-sm shadow-xl">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><MessageSquare size={18} className="text-[#d4af37]" /> Gerenciar FAQ</h2>
-                    <form onSubmit={handleFaqSubmit} className="space-y-4 mb-8">
-                       <div>
-                          <input required placeholder="Pergunta" value={faqForm.q} onChange={(e) => setFaqForm({...faqForm, q: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm" />
-                       </div>
-                       <div>
-                          <textarea required placeholder="Resposta" rows={3} value={faqForm.a} onChange={(e) => setFaqForm({...faqForm, a: e.target.value})} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-[#d4af37] focus:outline-none text-white rounded-sm resize-none" />
-                       </div>
-                       <button type="submit" className="w-full border border-white/20 hover:bg-white/5 text-white font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-2 text-xs"><PlusCircle size={14} /> Adicionar FAQ</button>
-                    </form>
-                    <div className="space-y-3">
-                       {faqs.map(faq => (
-                          <div key={faq.id} className="bg-black/30 border border-white/5 p-3 rounded-sm flex justify-between gap-4">
-                             <div><p className="text-sm font-bold text-white">{faq.q}</p></div>
-                             <button onClick={() => removeFaq(faq.id)} className="text-zinc-600 hover:text-red-500"><Trash2 size={14} /></button>
-                          </div>
-                       ))}
-                    </div>
                  </div>
               </div>
            </div>

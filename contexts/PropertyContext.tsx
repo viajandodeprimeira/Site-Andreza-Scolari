@@ -26,6 +26,7 @@ export interface BrokerProfile {
   logo?: string;
   heroImage?: string; // New field for Hero background
   pixelCode?: string;
+  googleAnalyticsId?: string; // New field for GA4
 }
 
 export interface SocialLinks {
@@ -137,7 +138,8 @@ const DEFAULT_PROFILE: BrokerProfile = {
   image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1888&auto=format&fit=crop',
   logo: '',
   heroImage: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2700&auto=format&fit=crop',
-  pixelCode: ''
+  pixelCode: '',
+  googleAnalyticsId: ''
 };
 
 const DEFAULT_SOCIALS: SocialLinks = {

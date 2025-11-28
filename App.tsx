@@ -5,6 +5,7 @@ import { ChatView } from './components/views/ChatView';
 import { AdminView } from './components/views/AdminView';
 import { VisionView } from './components/views/VisionView';
 import { ImageGenView } from './components/views/ImageGenView';
+import { PrivacyPolicyView } from './components/views/PrivacyPolicyView';
 import { AppMode } from './types';
 import { PropertyProvider, useProperties } from './contexts/PropertyContext';
 
@@ -13,36 +14,63 @@ const PixelInjector: React.FC = () => {
     const { brokerProfile } = useProperties();
     
     useEffect(() => {
-        if (!brokerProfile.pixelCode) return;
-
-        // Simple check to prevent re-injection if the script already exists
-        // (This is a basic implementation. For robust production use, consider using specific IDs or a Tag Manager)
-        const scriptId = 'custom-pixel-script';
-        if (document.getElementById(scriptId)) return;
-
-        try {
-            // Create a temporary container to parse the HTML string
-            const div = document.createElement('div');
-            div.innerHTML = brokerProfile.pixelCode;
-            
-            const scripts = div.getElementsByTagName('script');
-            
-            // Re-create scripts to ensure they execute
-            Array.from(scripts).forEach((script) => {
-                 const newScript = document.createElement('script');
-                 newScript.id = scriptId;
-                 if (script.src) {
-                     newScript.src = script.src;
-                     newScript.async = true;
-                 } else {
-                     newScript.textContent = script.textContent;
-                 }
-                 document.head.appendChild(newScript);
-            });
-        } catch (e) {
-            console.error("Failed to inject pixel scripts", e);
+        // --- 1. Custom Scripts & Pixel Injection ---
+        if (brokerProfile.pixelCode) {
+            const scriptId = 'custom-pixel-script';
+            if (!document.getElementById(scriptId)) {
+                try {
+                    const div = document.createElement('div');
+                    div.innerHTML = brokerProfile.pixelCode;
+                    
+                    const scripts = div.getElementsByTagName('script');
+                    
+                    Array.from(scripts).forEach((script) => {
+                        const newScript = document.createElement('script');
+                        newScript.id = scriptId;
+                        if (script.src) {
+                            newScript.src = script.src;
+                            newScript.async = true;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.head.appendChild(newScript);
+                    });
+                } catch (e) {
+                    console.error("Failed to inject pixel scripts", e);
+                }
+            }
         }
-    }, [brokerProfile.pixelCode]);
+
+        // --- 2. Google Analytics 4 Injection ---
+        if (brokerProfile.googleAnalyticsId) {
+            const gaId = brokerProfile.googleAnalyticsId;
+            const scriptId = 'ga4-script';
+            
+            if (!document.getElementById(scriptId)) {
+                try {
+                    // Inject the async script tag
+                    const scriptTag = document.createElement('script');
+                    scriptTag.id = scriptId;
+                    scriptTag.async = true;
+                    scriptTag.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+                    document.head.appendChild(scriptTag);
+
+                    // Inject the init code
+                    const initScript = document.createElement('script');
+                    initScript.textContent = `
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+                        gtag('config', '${gaId}');
+                    `;
+                    document.head.appendChild(initScript);
+                } catch(e) {
+                     console.error("Failed to inject GA4", e);
+                }
+            }
+        }
+
+    }, [brokerProfile.pixelCode, brokerProfile.googleAnalyticsId]);
 
     return null;
 };
@@ -56,6 +84,7 @@ const AppContent: React.FC = () => {
       case 'chat': return AppMode.CHAT;
       case 'vision': return AppMode.VISION;
       case 'studio': return AppMode.IMAGE_GEN;
+      case 'privacy': return AppMode.PRIVACY;
       default: return AppMode.HOME;
     }
   });
@@ -68,6 +97,7 @@ const AppContent: React.FC = () => {
       case AppMode.CHAT: window.location.hash = 'chat'; break;
       case AppMode.VISION: window.location.hash = 'vision'; break;
       case AppMode.IMAGE_GEN: window.location.hash = 'studio'; break;
+      case AppMode.PRIVACY: window.location.hash = 'privacy'; break;
       default: window.location.hash = ''; break;
     }
   };
@@ -81,6 +111,7 @@ const AppContent: React.FC = () => {
         case 'chat': setModeState(AppMode.CHAT); break;
         case 'vision': setModeState(AppMode.VISION); break;
         case 'studio': setModeState(AppMode.IMAGE_GEN); break;
+        case 'privacy': setModeState(AppMode.PRIVACY); break;
         default: setModeState(AppMode.HOME); break;
       }
     };
@@ -92,7 +123,8 @@ const AppContent: React.FC = () => {
   return (
       <main className="w-full min-h-screen bg-white text-slate-900 font-sans">
         <PixelInjector />
-        <Home setMode={setMode} />
+        
+        {mode === AppMode.HOME && <Home setMode={setMode} />}
         
         <AnimatePresence>
           {mode === AppMode.CHAT && (
@@ -130,6 +162,17 @@ const AppContent: React.FC = () => {
              className="fixed inset-0 z-50 bg-[#09090b]"
              >
                 <ImageGenView goBack={() => setMode(AppMode.ADMIN)} />
+             </motion.div>
+          )}
+
+          {mode === AppMode.PRIVACY && (
+             <motion.div 
+             initial={{ opacity: 0, x: '100%' }}
+             animate={{ opacity: 1, x: 0 }}
+             exit={{ opacity: 0, x: '100%' }}
+             className="fixed inset-0 z-50 bg-[#09090b] overflow-y-auto"
+             >
+                <PrivacyPolicyView goBack={() => setMode(AppMode.HOME)} />
              </motion.div>
           )}
         </AnimatePresence>

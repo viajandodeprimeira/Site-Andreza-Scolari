@@ -23,7 +23,8 @@ import {
   DollarSign,
   Calendar,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Scale
 } from '../ui/Icons';
 import { AppMode } from '../../types';
 import { useProperties, Property } from '../../contexts/PropertyContext';
@@ -435,6 +436,7 @@ export const Home: React.FC<HomeProps> = ({ setMode }) => {
               <div className="space-y-4">
                  <h4 className="text-sm font-bold uppercase tracking-widest text-[#d4af37]">Links Úteis</h4>
                  <ul className="space-y-2 text-zinc-400 text-sm">
+                    <li><button onClick={() => setMode(AppMode.PRIVACY)} className="flex items-center gap-1 hover:text-[#d4af37] transition-colors"><Scale size={12}/> Política de Privacidade</button></li>
                     <li><button onClick={() => setMode(AppMode.ADMIN)} className="flex items-center gap-1 hover:text-[#d4af37] transition-colors"><Lock size={12}/> Área do Corretor</button></li>
                  </ul>
               </div>

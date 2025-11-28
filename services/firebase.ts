@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 
 // ------------------------------------------------------------------
 // CONFIGURAÇÃO DO FIREBASE
@@ -22,16 +23,19 @@ export const USE_FIREBASE = !!firebaseConfig.apiKey;
 
 let app;
 let db: any;
+let auth: any;
 
 if (USE_FIREBASE) {
   try {
     app = initializeApp(firebaseConfig);
     db = getDatabase(app);
-    console.log("🔥 Firebase CONECTADO com sucesso!");
+    auth = getAuth(app);
+    console.log("🔥 Firebase (Auth & Database) CONECTADO com sucesso!");
   } catch (error) {
     console.error("Erro ao conectar Firebase.", error);
     db = null; 
+    auth = null;
   }
 }
 
-export { db };
+export { db, auth };
