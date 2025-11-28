@@ -9,7 +9,7 @@ import { getFirestore } from 'firebase/firestore';
 // ------------------------------------------------------------------
 
 // Tenta pegar das variáveis de ambiente (Vite/Vercel standard)
-const env: any = import.meta.env || {};
+const env: any = (import.meta as any).env || {};
 
 const firebaseConfig = {
   apiKey: env.VITE_FIREBASE_API_KEY || "SUA_API_KEY_AQUI",

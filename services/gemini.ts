@@ -2,8 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 
 // Support both process.env (Node) and import.meta.env (Vite/Vercel)
 const getApiKey = () => {
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env.VITE_GOOGLE_API_KEY || '';
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+    return (import.meta as any).env.VITE_GOOGLE_API_KEY || '';
   }
   return process.env.API_KEY || '';
 };
