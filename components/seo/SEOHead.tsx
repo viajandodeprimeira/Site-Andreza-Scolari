@@ -15,7 +15,7 @@ export const SEOHead: React.FC = () => {
     "telephone": socialLinks.whatsapp.replace('https://wa.me/', '+'),
     "address": {
       "@type": "PostalAddress",
-      "addressLocality": "Balneário Camboriú",
+      "addressLocality": "Penha",
       "addressRegion": "SC",
       "addressCountry": "BR"
     },
