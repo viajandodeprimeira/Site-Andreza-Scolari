@@ -142,7 +142,8 @@ const DEFAULT_PROFILE: BrokerProfile = {
 
 const DEFAULT_SOCIALS: SocialLinks = {
   instagram: 'https://www.instagram.com/andrezascolari/?hl=pt',
-  whatsapp: 'https://wa.me/'
+  // SUBSTITUA O NÚMERO ABAIXO PELO SEU (55 + DDD + NÚMERO)
+  whatsapp: 'https://wa.me/5547999999999' 
 };
 
 const DEFAULT_FAQS: FAQ[] = [
