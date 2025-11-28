@@ -9,7 +9,7 @@ import { getAuth } from 'firebase/auth';
 // A apiKey abaixo serve tanto para o Database quanto para o Authentication.
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAgTqVqwYWRQWtrX8jpOSypkYOo31vtWYw",
+  apiKey: "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw",
   authDomain: "site-andreza-scolari.firebaseapp.com",
   projectId: "site-andreza-scolari",
   storageBucket: "site-andreza-scolari.firebasestorage.app",
@@ -23,7 +23,7 @@ const firebaseConfig = {
 // Validação simples
 export const USE_FIREBASE = 
   !!firebaseConfig.apiKey && 
-  firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jpOSypkYOo31vtWYw" &&
+  firebaseConfig.apiKey !== "AIzaSyAgTqVqwYWRQWtrX8jp0SypkYOo31vtWYw" &&
   firebaseConfig.apiKey.length > 10;
 
 let app;
